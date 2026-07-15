@@ -1,4 +1,4 @@
-// For Library Version: 1.140.0
+// For Library Version: 1.144.0
 
 declare module "sap/tnt/library" {
   export interface IToolHeader {
@@ -222,7 +222,7 @@ declare module "sap/f/library" {
    *
    * Each layout has a default predefined ratio for the three columns, depending on device size. Based on
    * the device and layout, some columns are hidden. For more information, refer to the ratios (in %) for
-   * each value, listed below: (dash "-" means non-accessible columns).
+   * each value, listed below: (hyphen "-" means non-accessible columns).
    *
    * **Notes:**
    * 	 - The user is allowed to customize the default ratio by dragging the column separators to resize the
@@ -2745,7 +2745,7 @@ declare module "sap/f/cards/Header" {
 
   import AvatarSize from "sap/m/AvatarSize";
 
-  import { URI } from "sap/ui/core/library";
+  import { URI, ValueState } from "sap/ui/core/library";
 
   import ElementMetadata from "sap/ui/core/ElementMetadata";
 
@@ -2927,6 +2927,18 @@ declare module "sap/f/cards/Header" {
      * @returns Value of property `iconSrc`
      */
     getIconSrc(): URI;
+    /**
+     * Gets current value of property {@link #getIconState iconState}.
+     *
+     * Defines a status-colored, non-interactive message icon in the icon area.
+     *
+     * Default value is `None`.
+     *
+     * @since 1.141
+     *
+     * @returns Value of property `iconState`
+     */
+    getIconState(): ValueState;
     /**
      * Gets current value of property {@link #getIconVisible iconVisible}.
      *
@@ -3125,6 +3137,25 @@ declare module "sap/f/cards/Header" {
        * New value for property `iconSrc`
        */
       sIconSrc?: URI
+    ): this;
+    /**
+     * Sets a new value for property {@link #getIconState iconState}.
+     *
+     * Defines a status-colored, non-interactive message icon in the icon area.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `None`.
+     *
+     * @since 1.141
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setIconState(
+      /**
+       * New value for property `iconState`
+       */
+      sIconState?: ValueState | keyof typeof ValueState
     ): this;
     /**
      * Sets a new value for property {@link #getIconVisible iconVisible}.
@@ -3336,6 +3367,16 @@ declare module "sap/f/cards/Header" {
      */
     iconFitType?:
       | (AvatarImageFitType | keyof typeof AvatarImageFitType)
+      | PropertyBindingInfo
+      | `{${string}}`;
+
+    /**
+     * Defines a status-colored, non-interactive message icon in the icon area.
+     *
+     * @since 1.141
+     */
+    iconState?:
+      | (ValueState | keyof typeof ValueState)
       | PropertyBindingInfo
       | `{${string}}`;
   }
@@ -10821,7 +10862,7 @@ declare module "sap/f/FlexibleColumnLayoutData" {
 
   /**
    * Holds layout data for `sap.f.FlexibleColumnLayout`. Allows LayoutData of type `sap.f.FlexibleColumnLayoutDataForDesktop`
-   * or `sap.f.FlexibleColumnLayoutFlexibleColumnLayoutDataForTablet`
+   * or `sap.f.FlexibleColumnLayoutDataForTablet`
    *
    * @since 1.128
    */
@@ -18806,7 +18847,7 @@ declare module "sap/f/semantic/SemanticPage" {
     /**
      * Gets content of aggregation {@link #getLandmarkInfo landmarkInfo}.
      *
-     * Accessible landmark settings to be applied to the containers of the `sap.f.SemanticPage` control.
+     * Accessible landmark settings to be applied to the containers of the `sap.f.semantic.SemanticPage` control.
      *
      * If not set, no landmarks will be written.
      *
@@ -20534,7 +20575,7 @@ declare module "sap/f/semantic/SemanticPage" {
       | `{${string}}`;
 
     /**
-     * Accessible landmark settings to be applied to the containers of the `sap.f.SemanticPage` control.
+     * Accessible landmark settings to be applied to the containers of the `sap.f.semantic.SemanticPage` control.
      *
      * If not set, no landmarks will be written.
      *
@@ -21033,6 +21074,13 @@ declare module "sap/f/ShellBar" {
   import Button from "sap/m/Button";
 
   /**
+   * **Note:** `sap.f.ShellBar` is not UXC-compliant and will no longer be aligned with future UXC design
+   * updates. For UXC-compliant applications, use the ui5-shellbar web component instead. It can be integrated
+   * seamlessly using ui5-tooling-modules. See {@link https://ui5.sap.com/#/topic/1c80793df5bb424091954697fc0b2828 Using Web Components}.
+   *
+   *
+   *
+   *
    * A horizontal bar control holding multiple child controls used as application shell header.
    *
    * Overview:

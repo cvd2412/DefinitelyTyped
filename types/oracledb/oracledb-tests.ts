@@ -64,6 +64,7 @@ const testGetStatmentInfo = async (connection: oracledb.Connection): Promise<voi
         info.metaData[0],
         {
             name: "1",
+            dbColumnName: "1",
             fetchType: 2002,
             dbType: oracledb.DB_TYPE_NUMBER,
             nullable: true,
@@ -297,7 +298,7 @@ const runPromiseTests = async (): Promise<void> => {
         console.log("Testing pool.close()...");
 
         await pool.close(5);
-    } catch (err) {
+    } catch (err: any) {
         console.log(err.message);
     }
 };
@@ -821,11 +822,16 @@ export const version6_9Tests = async (): Promise<void> => {
     });
 
     const txnId = "testId";
-    await connection.beginSessionlessTransaction({ transactionId: txnId, timeout: 2, deferRoundTrip: true });
+    const id1 = await connection.beginSessionlessTransaction({
+        transactionId: txnId,
+        timeout: 2,
+        deferRoundTrip: true,
+    });
+    console.log(id1.length);
     await connection.execute("INSERT INTO TEST VALUES(1)", {}, { suspendOnSuccess: true });
-    await connection.suspendSessionlessTransaction();
-    await connection.resumeSessionlessTransaction(txnId, { deferRoundTrip: false });
-
+    await connection.suspendSessionlessTransaction().then();
+    const id2 = await connection.resumeSessionlessTransaction(txnId, { deferRoundTrip: false });
+    console.log(id2.length);
     console.log(connection.ltxid);
 
     await oracledb.createPool({
@@ -846,4 +852,30 @@ export const version6_9Tests = async (): Promise<void> => {
     q.enqOne("test");
     const msg = await q.deqOne();
     console.log(msg.enqTime);
+};
+
+export const version6_10Tests = async (): Promise<void> => {
+    const connection = await oracledb.getConnection({
+        user: "test",
+    });
+    const queue = await connection.getQueue("test", {
+        payloadType: "test",
+    });
+
+    const { name, deqOptions, enqOptions, payloadType, payloadTypeClass, payloadTypeName } = queue;
+
+    const {
+        condition,
+        consumerName,
+        correlation,
+        deliveryMode,
+        mode,
+        msgId,
+        navigation,
+        transformation,
+        visibility,
+        wait,
+    } = deqOptions;
+
+    const messages = await queue.deqMany(5);
 };

@@ -7,6 +7,7 @@ import {
     CryptoId,
     ExchangeProviderInfo,
     ExchangeTrade,
+    ExchangeTradeQuoteRequest,
     ExchangeTradeSigned,
     InfoResponse,
     SellFiatTrade,
@@ -65,7 +66,12 @@ const providerInfo: BuyProviderInfo = {
     tradedCoins: [],
     tradedFiatCurrencies: [],
     supportedCountries: [],
+    supportedSubdivisions: {},
+    disabledSubdivisions: {},
     paymentMethods: [],
+    statusUrl: "https://test-finance.invity.io/#status/{{paymentId}}",
+    supportUrl: "",
+    termsUrl: "https://invity.io/terms-of-use-invity-finance",
 };
 
 const infoResponse: InfoResponse = {
@@ -104,7 +110,8 @@ const exchangeProviderInfo: ExchangeProviderInfo = {
     },
     statusUrl: "https://example.com/txs/{{orderId}}",
     kycUrl: "https://example.com/faq#kyc",
-    supportUrl: " https://support.example.com",
+    supportUrl: "https://support.example.com",
+    termsUrl: "https://example.com/legal/terms-of-use",
     kycPolicy: "KYC is required...",
     kycPolicyType: "KYC-norefund",
     isRefundRequired: false,
@@ -119,8 +126,11 @@ const sellProviderInfo: SellProviderInfo = {
     tradedCoins: ["bitcoin", "ethereum"] as CryptoId[],
     tradedFiatCurrencies: ["USD"],
     supportedCountries: ["US"],
+    supportedSubdivisions: { "US": ["WA"] },
+    disabledSubdivisions: {},
     statusUrl: "https://example.com/txs/{{orderId}}",
     supportUrl: " https://support.example.com",
+    termsUrl: "https://example.com/legal/terms-of-use",
     flow: "PAYMENT_GATE",
     isRefundAddressRequired: false,
     lockSendAmount: false,
@@ -154,9 +164,17 @@ const exchangeSignatureRequest: CreateTradeSignatureRequestExchange = {
     receiveSlip44: 2,
 };
 
-const exchangeTradeQuoteRequest: ConfirmExchangeTradeRequest = {
+const exchangeTradeRequest: ConfirmExchangeTradeRequest = {
     trade: et,
     receiveAddress: "receiveAddress",
     refundAddress: "refundAddress",
     approvalFlow: true,
+};
+
+const exchangeTradeQuoteRequest: ExchangeTradeQuoteRequest = {
+    send: "bitcoin" as CryptoId,
+    receive: "ethereum" as CryptoId,
+    sendStringAmount: "0.1",
+    fromAddress: "fromAddress",
+    receiveAddress: "receiveAddress",
 };

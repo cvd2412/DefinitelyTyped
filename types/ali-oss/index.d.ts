@@ -27,6 +27,8 @@ declare namespace OSS {
         refreshSTSTokenInterval?: number;
         /** used by auto set stsToken、accessKeyId、accessKeySecret when sts info expires. return value must be object contains stsToken、accessKeyId、accessKeySecret */
         refreshSTSToken?: () => Promise<{ accessKeyId: string; accessKeySecret: string; stsToken: string }>;
+        /** Use V4 signature. Default is false. */
+        authorizationV4?: boolean | undefined;
     }
 
     /**
@@ -295,7 +297,7 @@ declare namespace OSS {
         /** only search current dir, not including subdir */
         delimiter?: string | number;
         /** max objects, default is 100, limit to 1000  */
-        "max-keys"?: string;
+        "max-keys"?: string | number;
         /**
          * The name of the object from which the list operation begins.
          * If this parameter is specified, objects whose names are alphabetically greater than the start-after parameter value are returned.
@@ -579,6 +581,15 @@ declare namespace OSS {
         uploads: Upload[];
     }
 
+    interface PutSymlinkOptions {
+        /** the storage type include (Standard,IA,Archive) */
+        storageClass?: string | undefined;
+        /** user meta, will send with x-oss-meta- prefix string */
+        meta?: UserMeta | undefined;
+        /** extra headers */
+        headers?: object | undefined;
+    }
+
     interface PutChannelConf {
         Description?: string | undefined;
         Status?: string | undefined;
@@ -693,9 +704,24 @@ declare namespace OSS {
 
         deleteMulti(names: string[], options?: DeleteMultiOptions): Promise<DeleteMultiResult>;
 
-        signatureUrl(name: string, options?: SignatureUrlOptions): string;
+        signatureUrl(name: string, options?: SignatureUrlOptions, strictObjectNameValidation?: boolean): string;
 
-        asyncSignatureUrl(name: string, options?: SignatureUrlOptions): Promise<string>;
+        signatureUrlV4(
+            method: HTTPMethods,
+            expires: number,
+            request: {
+                headers?: object | undefined;
+                queries?: object | undefined;
+            } | undefined,
+            objectName: string,
+            additionalHeaders?: string[],
+        ): Promise<string>;
+
+        asyncSignatureUrl(
+            name: string,
+            options?: SignatureUrlOptions,
+            strictObjectNameValidation?: boolean,
+        ): Promise<string>;
 
         putACL(name: string, acl: ACLType, options?: RequestOptions): Promise<NormalSuccessResponse>;
 
@@ -991,7 +1017,7 @@ declare class OSS {
     /**
      * List Objects in the bucket.(V2)
      */
-    listV2(query: OSS.ListV2ObjectsQuery | null, options: OSS.RequestOptions): Promise<OSS.ListObjectResult>;
+    listV2(query: OSS.ListV2ObjectsQuery | null, options?: OSS.RequestOptions): Promise<OSS.ListObjectResult>;
 
     /**
      * Add an object to the bucket.
@@ -1067,6 +1093,20 @@ declare class OSS {
      * Create a signature url for download or upload object. When you put object with signatureUrl ,you need to pass Content-Type.Please look at the example.
      */
     signatureUrl(name: string, options?: OSS.SignatureUrlOptions): string;
+
+    /**
+     * Generate a signed URL for V4 of an OSS resource and share the URL to allow authorized third-party users to access the resource.
+     */
+    signatureUrlV4(
+        method: OSS.HTTPMethods,
+        expires: number,
+        request: {
+            headers?: object | undefined;
+            queries?: object | undefined;
+        } | undefined,
+        objectName: string,
+        additionalHeaders?: string[],
+    ): Promise<string>;
 
     /**
      * Basically the same as signatureUrl, if refreshSTSToken is configured asyncSignatureUrl will refresh stsToken
@@ -1170,6 +1210,17 @@ declare class OSS {
     ): Promise<OSS.NormalSuccessResponse>;
 
     /**
+     * Cancel the current multipart upload operation.
+     * If abort is provided, it will also call abortMultipartUpload.
+     */
+    cancel(abort?: { name: string; uploadId: string; options?: OSS.RequestOptions }): void;
+
+    /**
+     * Check if the upload has been cancelled.
+     */
+    isCancel(): boolean;
+
+    /**
      * get postObject params.
      */
     calculatePostSignature(
@@ -1178,6 +1229,23 @@ declare class OSS {
          */
         policy: object | string,
     ): OSS.PostObjectParams;
+
+    /**
+     * put symlink
+     */
+    putSymlink(
+        name: string,
+        targetName: string,
+        options?: OSS.PutSymlinkOptions,
+    ): Promise<{ res: OSS.NormalSuccessResponse }>;
+
+    /**
+     * get symlink
+     */
+    getSymlink(
+        name: string,
+        options?: { versionId?: string | undefined; timeout?: number | undefined; headers?: object | undefined },
+    ): Promise<{ targetName: string; res: OSS.NormalSuccessResponse }>;
 
     /************************************************ RTMP Operations *************************************************************/
     /**

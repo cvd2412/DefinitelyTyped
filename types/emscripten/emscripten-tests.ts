@@ -24,8 +24,8 @@ function ModuleTest(): void {
     Module.onAbort = (what) => console.log("abort");
     Module.onRuntimeInitialized = () => console.log("init");
 
-    const package: ArrayBuffer = Module.getPreloadedPackage("package-name", 100);
-    const exports: WebAssembly.Exports | undefined = Module.instantiateWasm(
+    const pkg: ArrayBuffer = Module.getPreloadedPackage("package-name", 100);
+    const wasmExports: WebAssembly.Exports | undefined = Module.instantiateWasm(
         { a: { n: function __syscall_chmod() {} } },
         (module: WebAssembly.Instance) => {},
     );
@@ -104,6 +104,12 @@ function FSTest(): void {
     const bothDevice = FS.createDevice("/", "console", () => 66, (c: number) => console.log(c)); // Returns 'B' (66)
     const simpleDevice = FS.createDevice("/", "null");
 
+    // Test createDevice.major property access
+    const majorNumber: number = FS.createDevice.major;
+    FS.createDevice.major = 128; // Test assignment
+    // $ExpectType number
+    FS.createDevice.major;
+
     FS.writeFile("file", "foobar");
     FS.symlink("file", "link");
 
@@ -160,6 +166,8 @@ function FSTest(): void {
     const lookup = FS.lookupPath("path", { parent: true, follow: false });
     // $ExpectType number
     lookup.node.mode;
+    // $ExpectType any
+    lookup.node.contents;
 
     const analyze = FS.analyzePath("path");
     // $ExpectType boolean
@@ -186,6 +194,8 @@ function StringConv(): void {
     stringToUTF16(s, p, 42);
     stringToUTF32(s, p);
     stringToUTF32(s, p, 42);
+    p = stringToNewUTF8(s);
+    Module._free(p);
     p = allocateUTF8(s);
     Module._free(p);
 }
@@ -194,7 +204,8 @@ function StringConv(): void {
 function StackAlloc() {
     const stack = stackSave();
     const ptr = stackAlloc(42);
-    const strPtr = allocateUTF8OnStack("testString");
+    const strPtr = stringToUTF8OnStack("testString");
+    const legacyStrPtr = allocateUTF8OnStack("testString");
     stackRestore(stack);
 }
 

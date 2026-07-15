@@ -1,4 +1,4 @@
-// For Library Version: 1.140.0
+// For Library Version: 1.144.0
 
 declare module "sap/ui/mdc/AggregationBaseDelegate" {
   import BaseDelegate from "sap/ui/mdc/BaseDelegate";
@@ -1417,7 +1417,9 @@ declare module "sap/ui/mdc/field/FieldBaseDelegate" {
          */
         additionalValueType: SimpleType;
       }
-    ): Array<ConditionObject | string> | Promise<any[]>;
+    ):
+      | Array<ConditionObject | string>
+      | Promise<Array<ConditionObject | string>>;
   }
   const FieldBaseDelegate: FieldBaseDelegate;
   export default FieldBaseDelegate;
@@ -1442,6 +1444,7 @@ declare module "sap/ui/mdc/field/MultiValueFieldDelegate" {
      * Items can be removed, updated, or added. Use the binding information of the `MultiValueField` control
      * to update the data in the related model.
      *
+     * @deprecated As of version 1.142. replaced by {@link module:sap/ui/mdc/field/MultiValueFieldDelegate.updateItemsFromConditions updateItemsFromConditions}.
      * @experimental
      */
     updateItems(
@@ -1458,6 +1461,26 @@ declare module "sap/ui/mdc/field/MultiValueFieldDelegate" {
        * model
        */
       oMultiValueField: MultiValueField
+    ): void;
+    /**
+     * Implements the model-specific logic to update items after conditions have been updated.
+     *
+     * Items can be removed, updated, or added. Use the binding information of the `MultiValueField` control
+     * to update the data in the related model.
+     *
+     * @since 1.142
+     * @experimental
+     */
+    updateItemsFromConditions(
+      /**
+       * Current `MultiValueField` control to determine binding information to update the values of the related
+       * model
+       */
+      oMultiValueField: MultiValueField,
+      /**
+       * Current conditions of the `MultiValueField` control
+       */
+      aConditions: ConditionObject[]
     ): void;
   }
   const MultiValueFieldDelegate: MultiValueFieldDelegate;
@@ -1652,6 +1675,330 @@ declare module "sap/ui/mdc/FilterBarDelegate" {
   }
   const FilterBarDelegate: FilterBarDelegate;
   export default FilterBarDelegate;
+}
+
+declare module "sap/ui/mdc/GeomapDelegate" {
+  import AggregationBaseDelegate from "sap/ui/mdc/AggregationBaseDelegate";
+
+  import Geomap from "sap/ui/mdc/Geomap";
+
+  import Control from "sap/ui/core/Control";
+
+  import { AggregationBindingInfo } from "sap/ui/base/ManagedObject";
+
+  import { URI } from "sap/ui/core/library";
+
+  /**
+   * Base Delegate for {@link sap.ui.mdc.Geomap Geomap}. Extend this object in your project to use all functionalities
+   * of the {@link sap.ui.mdc.Geomap Geomap}.
+   *  This class provides method calls, that are called by the `geomap` for specific operations and overwrite
+   * the internal behavior.
+   *
+   * @experimental As of version 1.142.
+   */
+  interface GeomapDelegate extends AggregationBaseDelegate {
+    /**
+     * Returns the instance of the inner geomap.
+     *
+     *
+     * @returns Instance of the inner geomap
+     */
+    _getInnerGeomap(
+      /**
+       * Reference to the MDC geomap
+       */
+      oGeomap: Geomap
+    ): Control;
+    /**
+     * Creates a new geomap item for a given property name and updates the inner geomap.
+     *  **Note:** This does **not** add the geomap item to the `Items` aggregation of the geomap. Called and
+     * used by `p13n`.
+     *
+     *
+     * @returns `Promise` that resolves with new geomap `Item` as parameter
+     */
+    addItem(
+      /**
+       * Reference to the MDC geomap to add the property to
+       */
+      oGeomap: Geomap,
+      /**
+       * The name of the property added
+       */
+      sPropertyName: string,
+      /**
+       * The property bag containing useful information about the change
+       */
+      mPropertyBag: object,
+      /**
+       * New role for given item
+       */
+      sRole?: string
+    ): Promise<object>;
+    /**
+     * Creates the initial content for the geomap before the metadata is retrieved.
+     *  This can be used by geomap libraries that can already show some information without the actual data
+     * (for example, axis labels, legend, ...).
+     */
+    createInitialGeomapContent(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): void;
+    /**
+     * Binds the inner geomap to the back-end data and creates the inner geomap content.
+     */
+    createInnerGeomapContent(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap,
+      /**
+       * Callback function when data is loaded
+       */
+      fnCallbackDataLoaded: Function
+    ): void;
+    /**
+     * Returns the relevant property info based on the metadata used with the geomap instance.
+     *
+     * **Note:** The result of this function must be kept stable throughout the lifecycle of your application.
+     * Any changes of the returned values might result in undesired effects.
+     *
+     * **Note**: Existing properties (set via `sap.ui.mdc.Geomap#setPropertyInfo`) must not be removed and their
+     * attributes must not be changed during the {@link module:sap/ui/mdc/GeomapDelegate.fetchProperties fetchProperties }
+     * callback. Otherwise validation errors might occur whenever personalization-related control features (such
+     * as the opening of any personalization dialog) are activated.
+     *
+     *
+     * @returns Array of the property infos that is used within the geomap
+     */
+    fetchProperties(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): Promise</* was: sap.ui.mdc.Geomap.PropertyInfo */ any[]>;
+    /**
+     * Returns the binding info for given geomap.
+     *
+     *
+     * @returns BindingInfo object
+     */
+    getBindingInfo(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): AggregationBindingInfo;
+    /**
+     * Returns the information for control positions on the map.
+     *
+     *
+     * @returns with defined control positions
+     */
+    getControlPositions(): object;
+    /**
+     * Gets the information whether the inner geomap is currently bound.
+     *
+     *
+     * @returns `true` if inner geomap is bound; `false` if not
+     */
+    getGeomapBound(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): boolean;
+    /**
+     * Returns the current geomap type.
+     *
+     *
+     * @returns Information about the current geomap type
+     */
+    getGeomapTypeInfo(
+      /**
+       * Reference to the MDC geomap
+       */
+      oGeomap: Geomap
+    ): GeomapTypeObject[];
+    /**
+     * Gets the current zooming information for the geomap.
+     *
+     *
+     * @returns Current `zoom` level of the inner geomap
+     */
+    getZoomLevel(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): float;
+    /**
+     * Loads the required libraries and creates the inner geomap.
+     *  By default, the method returns `Promise.reject()`.
+     *
+     *
+     * @returns Resolved once the inner geomap has been initialized
+     */
+    initializeGeomap(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): Promise<any>;
+    /**
+     * Inserts a geomap item (spot / circle for `sap.geomap.geomap`) into the inner geomap.
+     *  This function is called by the geomap for a change of the `Items` aggregation.
+     *  **Note:** Do not call this yourself, as it would not be synced with the geomap, but insert the item
+     * into the geomap instead.
+     */
+    insertItemToGeomap(
+      /**
+       * geomap into which the item is insert
+       */
+      oGeomap: Geomap,
+      /**
+       * geomap item (spot, container, circle & etc. )that is inserted into the inner geomap
+       */
+      oGeomapItem: object,
+      /**
+       * The index into which the geomap item is inserted
+       */
+      iIndex: int,
+      /**
+       * the type of item which should be added to the geomap
+       */
+      sType: string
+    ): void;
+    /**
+     * Checks the binding of the geomap and rebinds it if required.
+     */
+    rebind(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap,
+      /**
+       * BindingInfo of the geomap
+       */
+      oBindingInfo: AggregationBindingInfo
+    ): void;
+    /**
+     * Removes an existing geomap item for a given property name and updates the inner geomap..
+     *
+     *
+     * @returns `Promise` containing information whether the item was deleted
+     */
+    removeItem(
+      /**
+       * Reference to the MDC geomap from which property is removed
+       */
+      oGeomap: Geomap,
+      /**
+       * The `item` that is removed from the geomap
+       */
+      oItem: object,
+      /**
+       * The property bag containing useful information about the change
+       */
+      mPropertyBag: object
+    ): Promise<boolean>;
+    /**
+     * Removes a geomap item (spot / circle for `sap.geomap.geomap`) from the inner geomap.
+     *  This function is called by the geomap for a change of the `Items` aggregation.
+     *  **Note:** Do not call this yourself, as it would not be synced with the geomap, but remove the item
+     * from the geomap instead.
+     */
+    removeItemFromGeomap(
+      /**
+       * geomap from which the item is removed
+       */
+      oGeoap: Geomap,
+      /**
+       * geomap item that is removed from the geomap
+       */
+      oGeomapItem: object,
+      /**
+       * geomap item type that should be removed from the geomap
+       */
+      sType: string
+    ): void;
+    /**
+     * Updates the binding info with the relevant information.
+     *  By default, this method updates a given {@link sap.ui.base.ManagedObject.AggregationBindingInfo AggregationBindingInfo}.
+     */
+    updateBindingInfo(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap,
+      /**
+       * Binding info of the geomap
+       */
+      oBindingInfo: AggregationBindingInfo
+    ): void;
+    /**
+     * Notifies the inner geomap to zoom in.
+     */
+    zoomIn(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): void;
+    /**
+     * Notifies the inner geomap to zoom out.
+     */
+    zoomOut(
+      /**
+       * Reference to the geomap
+       */
+      oGeomap: Geomap
+    ): void;
+  }
+  const GeomapDelegate: GeomapDelegate;
+  export default GeomapDelegate;
+
+  /**
+   * Geomap `GeomapTypeObject` type.
+   *
+   * @experimental As of version 1.142.
+   */
+  export type GeomapTypeObject = {
+    /**
+     * Unique key of the geomap type
+     */
+    key: string;
+    /**
+     * URI for the icon for the current geomap type
+     */
+    icon: URI;
+    /**
+     * Name of the current geomap type
+     */
+    text: string;
+    /**
+     * Whether the geomap type is the one currently used
+     */
+    selected: boolean;
+  };
+
+  /**
+   * geomap `ZoomState` type.
+   *
+   * @experimental As of version 1.142.
+   */
+  export type ZoomState = {
+    /**
+     * Zooming is enabled if set to `true`
+     */
+    enabled: boolean;
+    /**
+     * Current zoom level of the geomap in percent (between 0 and 1)
+     */
+    currentZoomLevel: number;
+  };
 }
 
 declare module "sap/ui/mdc/LinkDelegate" {
@@ -1953,9 +2300,9 @@ declare module "sap/ui/mdc/odata/v4/TableDelegate" {
      * If an update is not possible, it rebinds the table.
      *
      * Compares the current and previous state of the table to detect whether rebinding is necessary. The diffing
-     * is done for the sorters, filters, aggregation, parameters. Other {@link sap.ui.base.ManagedObject.AggregationBindingInfo binding info }
-     * keys, such as `path`, `events`, or `model`, must be provided in `updateBindingInfo`, and those keys must
-     * not be changed conditionally.
+     * is done for the sorters, filters, aggregation, parameters, and the path of the binding. Other {@link sap.ui.base.ManagedObject.AggregationBindingInfo binding info }
+     * keys, such as `events` or `model`, must be provided in `updateBindingInfo`, and those keys must not be
+     * changed conditionally.
      *
      * **Note:** To remove a binding info parameter, the value must be set to `undefined` in `updateBindingInfo`.
      * For more information, see {@link sap.ui.model.odata.v4.ODataListBinding#changeParameters}.
@@ -2169,12 +2516,12 @@ declare module "sap/ui/mdc/TableDelegate" {
      * To enable specific functionalities, the configuration must contain the following functions:
      * 	 - To enable **Expand Entire Tree**, the `expandAll` function needs to be implemented.
      * 	 - To enable **Collapse Entire Tree**, the `collapseAll` function needs to be implemented.
-     * 	 - To enable **Expand Entire Node**, the `expandAllFromNode` and `isNodeExpanded` functions need to
-     *     be implemented.
-     * 	 - To enable **Collapse Entire Node**, the `collapseAllFromNode` and `isNodeExpanded` functions need
+     * 	 - To enable **Expand Entire Node**, the `expandEntireNode` and `isNodeExpanded` functions need to be
+     *     implemented.
+     * 	 - To enable **Collapse Entire Node**, the `collapseEntireNode` and `isNodeExpanded` functions need
      *     to be implemented.
      *
-     * **Note:** Expand and collapse all from a specific node is only supported if the table rows are selectable.
+     * **Note:** Expanding and collapsing an entire node is only supported if the table rows are selectable.
      *
      * @ui5-protected Do not call from applications (only from related classes in the framework)
      *
@@ -2381,35 +2728,35 @@ declare module "sap/ui/mdc/TableDelegate" {
    */
   export type ExpandAndCollapseConfiguration = {
     /**
-     * Function to expand all rows
+     * Function to expand the entire tree
      *
      * @ui5-protected DO NOT USE IN APPLICATIONS (only for related classes in the framework)
      */
     expandAll?: (p1: Table) => void;
     /**
-     * Function to collapse all rows
+     * Function to collapse the entire tree
      *
      * @ui5-protected DO NOT USE IN APPLICATIONS (only for related classes in the framework)
      */
     collapseAll?: (p1: Table) => void;
     /**
-     * Function to expand all rows from a specific node
+     * Function to expand a node and all the nodes in its entire subtree.
      *
      * @ui5-protected DO NOT USE IN APPLICATIONS (only for related classes in the framework)
      */
-    expandAllFromNode?: (p1: Table, p2: Context) => void;
+    expandEntireNode?: (p1: Table, p2: Context) => void;
     /**
-     * Function to collapse all rows from a specific node
+     * Function to collapse a node and all the nodes in its entire subtree.
      *
      * @ui5-protected DO NOT USE IN APPLICATIONS (only for related classes in the framework)
      */
-    collapseAllFromNode?: (p1: Table, p2: Context) => void;
+    collapseEntireNode?: (p1: Table, p2: Context) => void;
     /**
-     * Function to check if a specific node is expanded
+     * Function to check if a specific node is expanded. Returns `undefined` if the node is a leaf.
      *
      * @ui5-protected DO NOT USE IN APPLICATIONS (only for related classes in the framework)
      */
-    isNodeExpanded?: (p1: Table, p2: Context) => void;
+    isNodeExpanded?: (p1: Table, p2: Context) => boolean | undefined;
   };
 }
 
@@ -2989,9 +3336,8 @@ declare module "sap/ui/mdc/ValueHelpDelegate" {
     /**
      * Returns filters that are used when updating the binding of the `ValueHelp`.
      * By default, this method returns a set of {@link sap.ui.model.Filter Filters} originating from an available
-     * {@link sap.ui.mdc.FilterBar FilterBar}, the delegate's own {@link module:sap/ui/mdc/ValueHelpDelegate.getFilterConditions getFilterConditions},
-     * and/or the {@link sap.ui.mdc.valuehelp.base.FilterableListContent#getFilterFields filterFields} configuration
-     * of the given {@link sap.ui.mdc.valuehelp.base.FilterableListContent FilterableListContent}.
+     * {@link sap.ui.mdc.FilterBar FilterBar} or the delegate's own {@link module:sap/ui/mdc/ValueHelpDelegate.getFilterConditions getFilterConditions }
+     * implementation.
      *
      * @since 1.121
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -3445,6 +3791,20 @@ declare module "sap/ui/mdc/library" {
   };
 
   /**
+   * Interface for subclasses of {@link sap.m.OverflowToolbarLayoutData} that position actions within the
+   * toolbar and configure the overflow menu. Classes implementing this interface must provide a `position`
+   * property, which uses an enumeration to define the relative order of the actions. The sequence of the
+   * enumeration values determines the placement of the actions. Enumeration values can be organized into
+   * groups by using the same prefix ending with the `Actions` keyword, such as `ClipboardActionsCopy` and
+   * `ClipboardActionsPaste`.
+   *
+   * @since 1.143
+   */
+  export interface IActionLayoutData {
+    __implements__sap_ui_mdc_IActionLayoutData: boolean;
+  }
+
+  /**
    * Interface for controls or entities which can serve as filters in the `sap.ui.mdc.Table` & `sap.ui.mdc.Chart`.
    *
    * The following methods need to be implemented:
@@ -3518,8 +3878,8 @@ declare module "sap/ui/mdc/library" {
 
   /**
    * The `State` object describes the interface to apply and retrieve the current adaptation state from mdc
-   * controls. The {@link sap.mdc.p13n.StateUtil StateUtil} class can be used to programatically apply changes
-   * considered for the controls personalization to be part of its persistence.
+   * controls. The {@link sap.ui.mdc.p13n.StateUtil StateUtil} class can be used to programatically apply
+   * changes considered for the controls personalization to be part of its persistence.
    */
   export type State = {
     /**
@@ -5140,20 +5500,18 @@ declare module "sap/ui/mdc/Chart" {
     minHeight?: CSSSize | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the sort conditions.
-     *  **Note:** This property must not be bound.
-     *  **Note:** This property is exclusively used for handling SAPUI5 flexibility changes. Do not use it for
-     * anything else.
+     * Defines the XML baseline for sort conditions in SAPUI5 flexibility.
+     *
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.88
      */
     sortConditions?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the filter conditions.
-     *  **Note:** This property must not be bound.
-     *  **Note:** This property is exclusively used for handling SAPUI5 flexibility changes. Do not use it for
-     * anything else.
+     * Defines the XML baseline for filter conditions in SAPUI5 flexibility.
+     *
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.99
      */
@@ -7667,37 +8025,53 @@ declare module "sap/ui/mdc/enums/FieldEditMode" {
    */
   enum FieldEditMode {
     /**
-     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField} or {@link sap.ui.mdc.MultiValueField MultiValueField }
-     * is rendered in disabled mode
+     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField}, or {@link sap.ui.mdc.MultiValueField MultiValueField }
+     * is rendered in disabled mode.
      */
     Disabled = "Disabled",
     /**
-     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField} or {@link sap.ui.mdc.MultiValueField MultiValueField }
-     * is rendered in display mode
+     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField},
+     * or {@link sap.ui.mdc.MultiValueField MultiValueField} control, the first part is disabled, and the other
+     * parts are in display mode.
+     *
+     * @since 1.144
+     */
+    DisabledDisplay = "DisabledDisplay",
+    /**
+     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField}, or {@link sap.ui.mdc.MultiValueField MultiValueField }
+     * is rendered in display mode.
      */
     Display = "Display",
     /**
-     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField} or {@link sap.ui.mdc.MultiValueField MultiValueField }
-     * is rendered in editable mode
+     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField}, or {@link sap.ui.mdc.MultiValueField MultiValueField }
+     * is rendered in editable mode.
      */
     Editable = "Editable",
     /**
-     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField }
+     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField},
      * or {@link sap.ui.mdc.MultiValueField MultiValueField} control, the first part is editable, and the other
      * parts are in display mode.
      */
     EditableDisplay = "EditableDisplay",
     /**
-     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField }
+     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField},
      * or {@link sap.ui.mdc.MultiValueField MultiValueField} control, the first part is editable, and the other
      * parts are read-only.
      */
     EditableReadOnly = "EditableReadOnly",
     /**
-     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField} or {@link sap.ui.mdc.MultiValueField MultiValueField }
-     * is rendered in read-only mode
+     * {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField}, or {@link sap.ui.mdc.MultiValueField MultiValueField }
+     * is rendered in read-only mode.
      */
     ReadOnly = "ReadOnly",
+    /**
+     * If more than one control is rendered by the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.FilterField FilterField},
+     * or {@link sap.ui.mdc.MultiValueField MultiValueField} control, the first part is read-only, and the other
+     * parts are in display mode.
+     *
+     * @since 1.144
+     */
+    ReadOnlyDisplay = "ReadOnlyDisplay",
   }
   export default FieldEditMode;
 }
@@ -7742,6 +8116,16 @@ declare module "sap/ui/mdc/enums/FilterBarValidationStatus" {
     RequiredHasNoValue = "RequiredHasNoValue",
   }
   export default FilterBarValidationStatus;
+}
+
+declare module "sap/ui/mdc/enums/GeomapControlPosition" {
+  /**
+   * Enumeration of the `position` property of the Geomap controls
+   *
+   * @experimental As of version 1.142.
+   */
+  enum GeomapControlPosition {}
+  export default GeomapControlPosition;
 }
 
 declare module "sap/ui/mdc/enums/LinkType" {
@@ -8553,6 +8937,60 @@ declare module "sap/ui/mdc/enums/RequestShowContainerReason" {
   export default RequestShowContainerReason;
 }
 
+declare module "sap/ui/mdc/enums/TableActionPosition" {
+  /**
+   * Defines the supported positions for table-relevant actions within the table toolbar, in accordance with
+   * the {@link https://www.sap.com/design-system/fiori-design-web/ui-elements/table-bar/ SAP Design System guidelines}.
+   *
+   * @since 1.143
+   */
+  enum TableActionPosition {
+    /**
+     * Extension point for actions displayed after all table-relevant actions. These actions allow applications
+     * to add additional functionality, such as pagination, refresh.
+     */
+    EndActions = "EndActions",
+    /**
+     * Extension point for the export actions at the start of the group. These actions convert the content of
+     * the table into an external format, such as Excel, PDF, a printed document.
+     */
+    ExportActions = "ExportActions",
+    /**
+     * Extension point for the modification actions at the start of the group. These actions modify the structure
+     * or content of the table, such as cut, copy, paste, reorder.
+     */
+    ModificationActions = "ModificationActions",
+    /**
+     * Extension point for the modification actions at the end of the group. These actions modify the structure
+     * or content of the table, such as cut, copy, paste, reorder.
+     */
+    ModificationActionsEnd = "ModificationActionsEnd",
+    /**
+     * Extension point for the personalization actions at the start of the group. These actions change the arrangement
+     * or personalization of the table at the item level, such as Expand/Collapse All Rows, Show/Hide Details,
+     * Table Settings.
+     */
+    PersonalizationActions = "PersonalizationActions",
+    /**
+     * Extension point for the personalization actions inserted after the first and before the second group
+     * of predefined actions. These actions change the arrangement or personalization of the table at the item
+     * level, such as Expand/Collapse Node, Show/Hide Details, Table Settings.
+     */
+    PersonalizationActionsMiddle = "PersonalizationActionsMiddle",
+    /**
+     * Extension point for the share actions at the start of the group. These actions allow users to share table
+     * content with another application or with the homepage as a tile, such as Send as Email, Save as Tile.
+     */
+    ShareActions = "ShareActions",
+    /**
+     * Extension point for the view actions at the start of the group. These actions change the representation
+     * of the entire table, such as View Switch, Fullscreen.
+     */
+    ViewActions = "ViewActions",
+  }
+  export default TableActionPosition;
+}
+
 declare module "sap/ui/mdc/enums/TableGrowingMode" {
   /**
    * Growing mode of the table.
@@ -8606,6 +9044,26 @@ declare module "sap/ui/mdc/enums/TableP13nMode" {
     Sort = "Sort",
   }
   export default TableP13nMode;
+}
+
+declare module "sap/ui/mdc/enums/TablePopinDisplay" {
+  /**
+   * Pop-in display mode of the table.
+   *
+   * @since 1.143
+   */
+  enum TablePopinDisplay {
+    /**
+     * The header is displayed on the first line, and the cell content is displayed on the next line.
+     */
+    Block = "Block",
+    /**
+     * The cell content is displayed next to the header on the same line. **Note:** If there is not enough space
+     * for the cell content, then it is displayed on the next line.
+     */
+    Inline = "Inline",
+  }
+  export default TablePopinDisplay;
 }
 
 declare module "sap/ui/mdc/enums/TableRowActionType" {
@@ -8766,12 +9224,15 @@ declare module "sap/ui/mdc/Field" {
    *
    *
    * 	 - In display mode, usually a {@link sap.m.Text Text} control is rendered.
-   * 	 - If `multipleLines` is set, an {@link sap.m.ExpandableText ExpandableText} control is rendered.
-   * 	 - If `fieldInfo` is set and it is configured to be triggerable, a {@link sap.m.Link Link} control is
-   *     rendered. The `multipleLines` property is forwarded to the `wrapping` property of the {@link sap.m.Link Link }
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, an {@link sap.m.ExpandableText ExpandableText }
+   *     control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getFieldInfo fieldInfo} is set and it is configured to be triggerable,
+   *     a {@link sap.m.Link Link} control is rendered. The {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines }
+   *     property is forwarded to the {@link sap.m.Link#setWrapping wrapping} property of the {@link sap.m.Link Link }
    *     control.
    * 	 - In edit mode, usually an {@link sap.m.Input Input} control is rendered.
-   * 	 - If `multipleLines` is set, a {@link sap.m.TextArea TextArea} control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, a {@link sap.m.TextArea TextArea }
+   *     control is rendered.
    * 	 - If a date type is used, a {@link sap.m.DatePicker DatePicker} control is rendered.
    * 	 - If a date/time type is used, a {@link sap.m.DateTimePicker DateTimePicker} control is rendered.
    * 	 - If a time type is used, a {@link sap.m.TimePicker TimePicker} control is rendered.
@@ -8861,7 +9322,7 @@ declare module "sap/ui/mdc/Field" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.Field` itself.
      *
-     * This event is fired when the `value` property of the field is changed by user interaction.
+     * This event is fired when the {@link #getValue value} property of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -8889,7 +9350,7 @@ declare module "sap/ui/mdc/Field" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.Field` itself.
      *
-     * This event is fired when the `value` property of the field is changed by user interaction.
+     * This event is fired when the {@link #getValue value} property of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -8994,6 +9455,9 @@ declare module "sap/ui/mdc/Field" {
      * To display the key and the description in one field, the description must be set on the `additionalValue`
      * property.
      *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
+     *
      *
      * @returns Value of property `additionalValue`
      */
@@ -9058,6 +9522,9 @@ declare module "sap/ui/mdc/Field" {
      *
      * To display the key and the description in one field, the key must be set on the `value` property.
      *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
+     *
      *
      * @returns Value of property `value`
      */
@@ -9069,6 +9536,9 @@ declare module "sap/ui/mdc/Field" {
      *
      * To display the key and the description in one field, the description must be set on the `additionalValue`
      * property.
+     *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -9174,6 +9644,9 @@ declare module "sap/ui/mdc/Field" {
      *
      * To display the key and the description in one field, the key must be set on the `value` property.
      *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
+     *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
      *
@@ -9219,6 +9692,9 @@ declare module "sap/ui/mdc/Field" {
      * The value of the field.
      *
      * To display the key and the description in one field, the key must be set on the `value` property.
+     *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
      */
     value?: any | PropertyBindingInfo | `{${string}}`;
 
@@ -9227,11 +9703,14 @@ declare module "sap/ui/mdc/Field" {
      *
      * To display the key and the description in one field, the description must be set on the `additionalValue`
      * property.
+     *
+     * **Warning:** Don't use a `Formatter` in the binding of this property since this only allows one-way binding.
+     * Therefore, no parsing of user input and no model updates are possible.
      */
     additionalValue?: any | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * This event is fired when the `value` property of the field is changed by user interaction.
+     * This event is fired when the {@link #getValue value} property of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      */
@@ -9245,7 +9724,8 @@ declare module "sap/ui/mdc/Field" {
     /**
      * The new value of the `Field`.
      *
-     * If a `ValueHelp` is assigned to the `Field`, the `value` is used as key for the `ValueHelp` items.
+     * If a {@link sap.ui.mdc.field.FieldBase#getValueHelp ValueHelp} is assigned to the `Field`, the `value`
+     * is used as key for the {@link sap.ui.mdc.field.FieldBase#getValueHelp ValueHelp} items.
      */
     value?: string;
 
@@ -9962,7 +10442,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
     CSSSize,
   } from "sap/ui/core/library";
 
-  import { IOverflowToolbarContent } from "sap/m/library";
+  import {
+    IOverflowToolbarContent,
+    IToolbarInteractiveControl,
+  } from "sap/m/library";
 
   import Control1 from "sap/ui/core/Control";
 
@@ -10000,12 +10483,14 @@ declare module "sap/ui/mdc/field/FieldBase" {
       IFormContent,
       ISemanticFormContent,
       IOverflowToolbarContent,
-      ILabelable
+      ILabelable,
+      IToolbarInteractiveControl
   {
     __implements__sap_ui_core_IFormContent: boolean;
     __implements__sap_ui_core_ISemanticFormContent: boolean;
     __implements__sap_m_IOverflowToolbarContent: boolean;
     __implements__sap_ui_core_ILabelable: boolean;
+    __implements__sap_m_IToolbarInteractiveControl: boolean;
     /**
      * Constructor for a new `FieldBase`.
      *
@@ -10088,7 +10573,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * This event is fired when the value of the field is changed, for example, each time a key is pressed.
      *
-     * **Note** This event is only triggered if the used content control has a `liveChange` event.
+     * **Note:** This event is only triggered if the used content control has a `liveChange` event.
      *
      *
      * @returns Reference to `this` in order to allow method chaining
@@ -10116,7 +10601,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * This event is fired when the value of the field is changed, for example, each time a key is pressed.
      *
-     * **Note** This event is only triggered if the used content control has a `liveChange` event.
+     * **Note:** This event is only triggered if the used content control has a `liveChange` event.
      *
      *
      * @returns Reference to `this` in order to allow method chaining
@@ -10187,7 +10672,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * This event is fired when the user presses Enter. It allows the application to implement some
      * submit logic.
      *
-     * **Note** This event is only triggered if the field is editable.
+     * **Note:** This event is only triggered if the field is editable.
      *
      * @since 1.82.0
      *
@@ -10217,7 +10702,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * This event is fired when the user presses Enter. It allows the application to implement some
      * submit logic.
      *
-     * **Note** This event is only triggered if the field is editable.
+     * **Note:** This event is only triggered if the field is editable.
      *
      * @since 1.82.0
      *
@@ -10270,12 +10755,13 @@ declare module "sap/ui/mdc/field/FieldBase" {
       vValue: any
     ): boolean;
     /**
-     * Assigns a `Label` control to the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.MultiValueField MultiValueField},
+     * Assigns a {@link sap.m.Label Label} control to the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.MultiValueField MultiValueField},
      * or {@link sap.ui.mdc.FilterField FilterField} controls.
      *
      * The text of the label is taken from the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.MultiValueField MultiValueField},
-     * or {@link sap.ui.mdc.FilterField FilterField} controls. The `labelFor` association is set to the {@link sap.ui.mdc.Field Field},
-     * {@link sap.ui.mdc.MultiValueField MultiValueField}, or {@link sap.ui.mdc.FilterField FilterField} control.
+     * or {@link sap.ui.mdc.FilterField FilterField} controls. The {@link sap.m.Label#setLabelFor labelFor }
+     * association is set to the {@link sap.ui.mdc.Field Field}, {@link sap.ui.mdc.MultiValueField MultiValueField},
+     * or {@link sap.ui.mdc.FilterField FilterField} control.
      *
      * @since 1.62.0
      *
@@ -10469,10 +10955,11 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Returns the configuration for the additional data type.
      *
-     * For a {@link sap.ui.mdc.Field Field}, the data type is determined from the binding of the `additionalValue`.
+     * For a {@link sap.ui.mdc.Field Field}, the data type is determined from the binding of the {@link sap.ui.mdc.Field#getAdditionalValue additionalValue}.
      * For a {@link sap.ui.mdc.MultiValueField MultiValueField}, the data type is determined from the binding
-     * of the `description` of an item. For a {@link sap.ui.mdc.FilterField FilterField}, the data type is provided
-     * via the `additionalDataType` property.
+     * of the {@link sap.ui.mdc.field.MultiValueFieldItem#getDescription description} of an item. For a {@link sap.ui.mdc.FilterField FilterField},
+     * the data type is provided via the {@link sap.ui.mdc.FilterField#getAdditionalDataType additionalDataType }
+     * property.
      *
      * @since 1.118.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -10493,7 +10980,8 @@ declare module "sap/ui/mdc/field/FieldBase" {
      */
     getBaseType(): BaseType;
     /**
-     * Creates parameter for a `ParseError`, `ValidationError` or `ValidationSuccess` event based on the corresponding
+     * Creates parameter for a {@link sap.ui.base.ManagedObject#event:ParseError ParseError}, {@link sap.ui.base.ManagedObject#event:ValidationError ValidationError }
+     * or {@link sap.ui.base.ManagedObject#event:ValidationSuccess ValidationSuccess} event based on the corresponding
      * event fired on the inner control.
      *
      * The basic implementation just adds the element and error information. The `property` and `type` information
@@ -10519,9 +11007,9 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * These should be bound to a {@link sap.ui.mdc.FilterBar FilterBar} using the corresponding `propertyPath`.
      *
      * **Note:** For {@link sap.ui.mdc.FilterField FilterField} controls, the `conditions` property is used
-     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link @link sap.ui.mdc.FilterBar FilterBar}.
-     *  If this property is not explicitly configured, the {@link @link sap.ui.mdc.FilterBar FilterBar} sets
-     * a default binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
+     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link sap.ui.mdc.FilterBar FilterBar}.
+     *  If this property is not explicitly configured, the {@link sap.ui.mdc.FilterBar FilterBar} sets a default
+     * binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
      * control, the binding looks like this:
      *  `conditions="{$filters>/conditions/propertyPath}"` with the following data:
      * 	 - `$filters` as the name of the condition model
@@ -10541,9 +11029,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * Optional content that can be rendered.
      *
-     * Per default, depending on `editMode`, `multipleLines` and the used data type, a content control is rendered.
-     * For simple string types, a {@link sap.m.Text Text} control is rendered in display mode and a {@link sap.m.Input Input }
-     * control in edit mode. If a control is assigned in the `content` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getEditMode editMode}, {@link #getMultipleLines multipleLines} and
+     * the used data type, a content control is rendered. For simple string types, a {@link sap.m.Text Text }
+     * control is rendered in display mode and a {@link sap.m.Input Input} control in edit mode. If a control
+     * is assigned in the `content` aggregation, this will be rendered instead.
      *
      * **Note:** Bind the value-holding property of the control to `'$field>/conditions'` using {@link sap.ui.mdc.field.ConditionsType ConditionsType }
      * as type.
@@ -10560,11 +11049,11 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Gets content of aggregation {@link #getContentDisplay contentDisplay}.
      *
-     * Optional content to be rendered if the `editMode` property is set to `Display`.
+     * Optional content to be rendered if the {@link #getEditMode editMode} property is set to `Display`.
      *
-     * Per default, depending on `multipleLines` and the used data type, a content control is rendered in display
-     * mode. For simple string types, a {@link sap.m.Text Text} control is rendered in display mode. If a control
-     * is assigned in the `contentDisplay` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getMultipleLines multipleLines} and the used data type, a content control
+     * is rendered in display mode. For simple string types, a {@link sap.m.Text Text} control is rendered in
+     * display mode. If a control is assigned in the `contentDisplay` aggregation, this will be rendered instead.
      *
      * **Note:** If a control is assigned to the `content` aggregation, this one is ignored.
      *
@@ -10585,11 +11074,11 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Gets content of aggregation {@link #getContentEdit contentEdit}.
      *
-     * Optional content to be rendered if the `editMode` property is not set to `Display`.
+     * Optional content to be rendered if the {@link #getEditMode editMode} property is not set to `Display`.
      *
-     * Per default, depending on `multipleLines` and the used data type, a content control is rendered in edit
-     * mode. For simple string types, an {@link sap.m.Input Input} control is rendered in edit mode. If a control
-     * is assigned in the `contentEdit` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getMultipleLines multipleLines} and the used data type, a content control
+     * is rendered in edit mode. For simple string types, an {@link sap.m.Input Input} control is rendered in
+     * edit mode. If a control is assigned in the `contentEdit` aggregation, this will be rendered instead.
      *
      * **Note:** If a control is assigned to the `content` aggregation, this one is ignored.
      *
@@ -10632,7 +11121,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Gets current value of property {@link #getDataTypeConstraints dataTypeConstraints}.
      *
-     * The constraints of the type specified in `dataType`.
+     * The constraints of the type specified in {@link #setDataType dataType}.
      *
      *
      * @returns Value of property `dataTypeConstraints`
@@ -10641,7 +11130,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Gets current value of property {@link #getDataTypeFormatOptions dataTypeFormatOptions}.
      *
-     * The format options of the type specified in `dataType`.
+     * The format options of the type specified in {@link #setDataType dataType}.
      *
      *
      * @returns Value of property `dataTypeFormatOptions`
@@ -10724,7 +11213,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * @since 1.126.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
      *
-     * @returns returns a promise waiting for ongoing formatting
+     * @returns returns a `Promise` waiting for ongoing formatting
      */
     getFormattingPromise(): undefined | Promise<any>;
     /**
@@ -10749,7 +11238,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * The default value of -1 indicates that an unlimited number of conditions can be defined.
      *
-     * **Note** If the data type used doesn't support multiple conditions, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple conditions, an error is thrown.
      *
      * Default value is `-1`.
      *
@@ -10766,7 +11255,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * This property is only used for single-value fields.
      *
-     * **Note** If the data type used doesn't support multiple lines, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple lines, an error is thrown.
      *
      * Default value is `false`.
      *
@@ -10780,7 +11269,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * @ui5-protected Do not call from applications (only from related classes in the framework)
      *
-     * @returns Configuration information for the `sap.m.IOverflowToolbarContent` interface.
+     * @returns Configuration information for the {@link sap.m.IOverflowToolbarContent} interface.
      */
     getOverflowToolbarConfig(): object;
     /**
@@ -10826,10 +11315,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * If set, an empty `Field` renders an empty indicator in display mode.
      *
-     * This property only takes effect if `editMode` is set to `Display`.
+     * This property only takes effect if {@link #setEditMode editMode} is set to `Display`.
      *
-     * **Note** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
-     * show nothing, depending on the `display` settings and assigned description or `ValueHelp`.
+     * **Note:** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
+     * show nothing, depending on the {@link #setDisplay display} settings and assigned description or {@link #setValueHelp ValueHelp}.
      *
      * Default value is `false`.
      *
@@ -10895,8 +11384,8 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * Visualizes the validation state of the control, for example, `Error`, `Warning` or `Success`.
      *
      * **Note:** The visualization of the `ValueState` property is handled by the inner rendered control. If
-     * a control is set (using `content`, `contentEdit`, or `contentDisplay`), this control needs to support
-     * the `valueState` behavior, otherwise `valueState` is not visualized.
+     * a control is set (using {@link #setContent content}, {@link #setContentEdit contentEdit}, or {@link #setContentDisplay contentDisplay}),
+     * this control needs to support the `valueState` behavior, otherwise `valueState` is not visualized.
      *
      * Default value is `None`.
      *
@@ -10905,7 +11394,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      */
     getValueState(): ValueState;
     /**
-     * Gets the ValueState for content controls
+     * Gets the `ValueState` for content controls
      *
      * @since 1.138.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -10938,7 +11427,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      */
     getWidth(): CSSSize;
     /**
-     * Handler of the `ModelContextChange` event.
+     * Handler of the {@link sap.ui.base.ManagedObject#event:modelContextChange modelContextChange} event.
      *
      * @ui5-protected Do not call from applications (only from related classes in the framework)
      */
@@ -10960,12 +11449,12 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * Returns the user interaction state of the control.
      *
      * If the user starts typing or navigates via arrow keys in a value help, the shown value might be updated.
-     * But as long as the user has not left the field or pressed the Enter key, the current user input will
-     * not be validated or updated or an event fired.
+     * But as long as the user has not left the field or pressed the Enter key, the current user
+     * input will not be validated or updated or an event fired.
      *
      * As long as the user is interacting with the field, this function returns `true`. If the user interaction
-     * has been completed because the user has left the field, pressed the Enter key, or chosen a value from
-     * the value help, the function returns `false`.
+     * has been completed because the user has left the field, pressed the Enter key, or chosen a
+     * value from the value help, the function returns `false`.
      *
      * @since 1.117.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -11001,8 +11490,8 @@ declare module "sap/ui/mdc/field/FieldBase" {
     isFieldDestroyed(): boolean;
     /**
      * Returns whether the given property value is initial and has not been explicitly set or no binding exist.
-     * Even after setting the default value or setting null/undefined (which also causes the default value to
-     * be set), the property is no longer initial. A property can be reset to initial state by calling `resetProperty(sPropertyName)`.
+     * Even after setting the default value or setting `null`/`undefined` (which also causes the default value
+     * to be set), the property is no longer initial. A property can be reset to initial state by calling `{@link sap.ui.base.ManagedObject#resetProperty resetProperty}(sPropertyName)`.
      *
      * @ui5-protected Do not call from applications (only from related classes in the framework)
      *
@@ -11076,12 +11565,13 @@ declare module "sap/ui/mdc/field/FieldBase" {
      */
     resetInvalidInput(
       /**
-       * If set to `true` the `ValueState` and `ValueStateText` is removed
+       * If set to `true` the {@link #getValueState ValueState} and {@link #getValueStateText ValueStateText }
+       * is removed
        */
       bRemoveUIMessage: boolean
     ): void;
     /**
-     * Resets the ValueState for content controls
+     * Resets the `ValueState` for content controls
      *
      * @since 1.138.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -11095,9 +11585,9 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * These should be bound to a {@link sap.ui.mdc.FilterBar FilterBar} using the corresponding `propertyPath`.
      *
      * **Note:** For {@link sap.ui.mdc.FilterField FilterField} controls, the `conditions` property is used
-     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link @link sap.ui.mdc.FilterBar FilterBar}.
-     *  If this property is not explicitly configured, the {@link @link sap.ui.mdc.FilterBar FilterBar} sets
-     * a default binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
+     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link sap.ui.mdc.FilterBar FilterBar}.
+     *  If this property is not explicitly configured, the {@link sap.ui.mdc.FilterBar FilterBar} sets a default
+     * binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
      * control, the binding looks like this:
      *  `conditions="{$filters>/conditions/propertyPath}"` with the following data:
      * 	 - `$filters` as the name of the condition model
@@ -11181,7 +11671,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Sets a new value for property {@link #getDataTypeConstraints dataTypeConstraints}.
      *
-     * The constraints of the type specified in `dataType`.
+     * The constraints of the type specified in {@link #setDataType dataType}.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11197,7 +11687,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Sets a new value for property {@link #getDataTypeFormatOptions dataTypeFormatOptions}.
      *
-     * The format options of the type specified in `dataType`.
+     * The format options of the type specified in {@link #setDataType dataType}.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11332,7 +11822,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * The default value of -1 indicates that an unlimited number of conditions can be defined.
      *
-     * **Note** If the data type used doesn't support multiple conditions, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple conditions, an error is thrown.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11356,7 +11846,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * This property is only used for single-value fields.
      *
-     * **Note** If the data type used doesn't support multiple lines, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple lines, an error is thrown.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11415,10 +11905,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * If set, an empty `Field` renders an empty indicator in display mode.
      *
-     * This property only takes effect if `editMode` is set to `Display`.
+     * This property only takes effect if {@link #setEditMode editMode} is set to `Display`.
      *
-     * **Note** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
-     * show nothing, depending on the `display` settings and assigned description or `ValueHelp`.
+     * **Note:** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
+     * show nothing, depending on the {@link #setDisplay display} settings and assigned description or {@link #setValueHelp ValueHelp}.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11493,8 +11983,8 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * Visualizes the validation state of the control, for example, `Error`, `Warning` or `Success`.
      *
      * **Note:** The visualization of the `ValueState` property is handled by the inner rendered control. If
-     * a control is set (using `content`, `contentEdit`, or `contentDisplay`), this control needs to support
-     * the `valueState` behavior, otherwise `valueState` is not visualized.
+     * a control is set (using {@link #setContent content}, {@link #setContentEdit contentEdit}, or {@link #setContentDisplay contentDisplay}),
+     * this control needs to support the `valueState` behavior, otherwise `valueState` is not visualized.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
      *
@@ -11510,7 +12000,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
       sValueState?: ValueState | keyof typeof ValueState
     ): this;
     /**
-     * Sets the ValueState for content controls
+     * Sets the `ValueState` for content controls
      *
      * @since 1.138.0
      * @ui5-protected Do not call from applications (only from related classes in the framework)
@@ -11563,6 +12053,25 @@ declare module "sap/ui/mdc/field/FieldBase" {
       sWidth?: CSSSize
     ): this;
     /**
+     * Checks if a condition update needs to fire a {@link sap.ui.base.ManagedObject#event:ValidationSuccess ValidationSuccess }
+     * event.
+     *
+     * This is required in {@link sap.ui.mdc.field.Field Field} if the condition update doesn't lead to an update
+     * of the {@link sap.ui.mdc.field.Field#setValue value} property. (If only description or payload is changed.)
+     *
+     * @since 1.142.0
+     * @ui5-protected Do not call from applications (only from related classes in the framework)
+     *
+     * @returns `true` if the {@link sap.ui.base.ManagedObject#event:ValidationSuccess ValidationSuccess} event
+     * is fired
+     */
+    shouldFireValidationSuccessOnConditionUpdate(
+      /**
+       * Current conditions
+       */
+      aConditions: ConditionObject[]
+    ): boolean;
+    /**
      * Triggers a check if all relevant properties are set to create the internal content control.
      *
      * To be sure that the check is not called multiple times, it needs to be checked if there is a pending
@@ -11601,12 +12110,12 @@ declare module "sap/ui/mdc/field/FieldBase" {
     dataType?: string | PropertyBindingInfo;
 
     /**
-     * The constraints of the type specified in `dataType`.
+     * The constraints of the type specified in {@link #setDataType dataType}.
      */
     dataTypeConstraints?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * The format options of the type specified in `dataType`.
+     * The format options of the type specified in {@link #setDataType dataType}.
      */
     dataTypeFormatOptions?: object | PropertyBindingInfo | `{${string}}`;
 
@@ -11663,8 +12172,8 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * Visualizes the validation state of the control, for example, `Error`, `Warning` or `Success`.
      *
      * **Note:** The visualization of the `ValueState` property is handled by the inner rendered control. If
-     * a control is set (using `content`, `contentEdit`, or `contentDisplay`), this control needs to support
-     * the `valueState` behavior, otherwise `valueState` is not visualized.
+     * a control is set (using {@link #setContent content}, {@link #setContentEdit contentEdit}, or {@link #setContentDisplay contentDisplay}),
+     * this control needs to support the `valueState` behavior, otherwise `valueState` is not visualized.
      */
     valueState?:
       | (ValueState | keyof typeof ValueState)
@@ -11689,7 +12198,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * This property is only used for single-value fields.
      *
-     * **Note** If the data type used doesn't support multiple lines, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple lines, an error is thrown.
      */
     multipleLines?: boolean | PropertyBindingInfo | `{${string}}`;
 
@@ -11698,7 +12207,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * The default value of -1 indicates that an unlimited number of conditions can be defined.
      *
-     * **Note** If the data type used doesn't support multiple conditions, an error is thrown.
+     * **Note:** If the data type used doesn't support multiple conditions, an error is thrown.
      */
     maxConditions?: int | PropertyBindingInfo | `{${string}}`;
 
@@ -11708,9 +12217,9 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * These should be bound to a {@link sap.ui.mdc.FilterBar FilterBar} using the corresponding `propertyPath`.
      *
      * **Note:** For {@link sap.ui.mdc.FilterField FilterField} controls, the `conditions` property is used
-     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link @link sap.ui.mdc.FilterBar FilterBar}.
-     *  If this property is not explicitly configured, the {@link @link sap.ui.mdc.FilterBar FilterBar} sets
-     * a default binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
+     * to bind {@link sap.ui.mdc.FilterField FilterField} to its parent {@link sap.ui.mdc.FilterBar FilterBar}.
+     *  If this property is not explicitly configured, the {@link sap.ui.mdc.FilterBar FilterBar} sets a default
+     * binding. For example, for a {@link sap.ui.mdc.FilterField FilterField} control inside a {@link sap.ui.mdc.FilterBar FilterBar }
      * control, the binding looks like this:
      *  `conditions="{$filters>/conditions/propertyPath}"` with the following data:
      * 	 - `$filters` as the name of the condition model
@@ -11752,10 +12261,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * If set, an empty `Field` renders an empty indicator in display mode.
      *
-     * This property only takes effect if `editMode` is set to `Display`.
+     * This property only takes effect if {@link #setEditMode editMode} is set to `Display`.
      *
-     * **Note** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
-     * show nothing, depending on the `display` settings and assigned description or `ValueHelp`.
+     * **Note:** Empty means the `Field` holds no value. If an empty string is a valid value, the `Field` might
+     * show nothing, depending on the {@link #setDisplay display} settings and assigned description or {@link #setValueHelp ValueHelp}.
      *
      * @since 1.85.0
      */
@@ -11764,9 +12273,10 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Optional content that can be rendered.
      *
-     * Per default, depending on `editMode`, `multipleLines` and the used data type, a content control is rendered.
-     * For simple string types, a {@link sap.m.Text Text} control is rendered in display mode and a {@link sap.m.Input Input }
-     * control in edit mode. If a control is assigned in the `content` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getEditMode editMode}, {@link #getMultipleLines multipleLines} and
+     * the used data type, a content control is rendered. For simple string types, a {@link sap.m.Text Text }
+     * control is rendered in display mode and a {@link sap.m.Input Input} control in edit mode. If a control
+     * is assigned in the `content` aggregation, this will be rendered instead.
      *
      * **Note:** Bind the value-holding property of the control to `'$field>/conditions'` using {@link sap.ui.mdc.field.ConditionsType ConditionsType }
      * as type.
@@ -11782,11 +12292,11 @@ declare module "sap/ui/mdc/field/FieldBase" {
     content?: Control1;
 
     /**
-     * Optional content to be rendered if the `editMode` property is not set to `Display`.
+     * Optional content to be rendered if the {@link #getEditMode editMode} property is not set to `Display`.
      *
-     * Per default, depending on `multipleLines` and the used data type, a content control is rendered in edit
-     * mode. For simple string types, an {@link sap.m.Input Input} control is rendered in edit mode. If a control
-     * is assigned in the `contentEdit` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getMultipleLines multipleLines} and the used data type, a content control
+     * is rendered in edit mode. For simple string types, an {@link sap.m.Input Input} control is rendered in
+     * edit mode. If a control is assigned in the `contentEdit` aggregation, this will be rendered instead.
      *
      * **Note:** If a control is assigned to the `content` aggregation, this one is ignored.
      *
@@ -11806,11 +12316,11 @@ declare module "sap/ui/mdc/field/FieldBase" {
     contentEdit?: Control1;
 
     /**
-     * Optional content to be rendered if the `editMode` property is set to `Display`.
+     * Optional content to be rendered if the {@link #getEditMode editMode} property is set to `Display`.
      *
-     * Per default, depending on `multipleLines` and the used data type, a content control is rendered in display
-     * mode. For simple string types, a {@link sap.m.Text Text} control is rendered in display mode. If a control
-     * is assigned in the `contentDisplay` aggregation, this will be rendered instead.
+     * Per default, depending on {@link #getMultipleLines multipleLines} and the used data type, a content control
+     * is rendered in display mode. For simple string types, a {@link sap.m.Text Text} control is rendered in
+     * display mode. If a control is assigned in the `contentDisplay` aggregation, this will be rendered instead.
      *
      * **Note:** If a control is assigned to the `content` aggregation, this one is ignored.
      *
@@ -11844,7 +12354,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      *
      * **Note:** If the field is inside of a table, do not set the `ValueHelp` instance as `dependent` to the
      * field. If you do, every field instance in every table row gets a clone of it. Put the `ValueHelp` instance
-     * e.g. as dependent on the table or page. The `FieldHelp` instance must be somewhere in the control tree,
+     * e.g. as dependent on the table or page. The `ValueHelp` instance must be somewhere in the control tree,
      * otherwise there might be rendering or update issues.
      *
      * **Note:** For `Boolean` fields, no `ValueHelp` should be added, but a default `ValueHelp` used instead.
@@ -11856,12 +12366,14 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * Optional `ValueHelp`.
      *
-     * This is an association that allows the usage of one `ValueHelp` instance for multiple fields.
+     * This is an association that allows the usage of one {@link sap.ui.mdc.ValueHelp ValueHelp} instance for
+     * multiple fields.
      *
-     * **Note:** If the field is inside of a table, do not set the `ValueHelp` instance as `dependent` to the
-     * field. If you do, every field instance in every table row gets a clone of it. Put the `ValueHelp` instance
-     * e.g. as dependent on the table or page. The `ValueHelp` instance must be somewhere in the control tree,
-     * otherwise there might be rendering or update issues.
+     * **Note:** If the field is inside of a table, do not set the {@link sap.ui.mdc.ValueHelp ValueHelp} instance
+     * as {@link sap.ui.core.Element#addDependent dependent} to the field. If you do, every field instance in
+     * every table row gets a clone of it. Put the {@link sap.ui.mdc.ValueHelp ValueHelp} instance e.g. as {@link sap.ui.core.Element#addDependent dependent }
+     * on the table or page. The {@link sap.ui.mdc.ValueHelp ValueHelp} instance must be somewhere in the control
+     * tree, otherwise there might be rendering or update issues.
      *
      * **Note:** For `Boolean` fields, no `ValueHelp` should be added, but a default `ValueHelp` used instead.
      */
@@ -11875,7 +12387,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
     /**
      * This event is fired when the value of the field is changed, for example, each time a key is pressed.
      *
-     * **Note** This event is only triggered if the used content control has a `liveChange` event.
+     * **Note:** This event is only triggered if the used content control has a `liveChange` event.
      */
     liveChange?: (oEvent: FieldBase$LiveChangeEvent) => void;
 
@@ -11888,7 +12400,7 @@ declare module "sap/ui/mdc/field/FieldBase" {
      * This event is fired when the user presses Enter. It allows the application to implement some
      * submit logic.
      *
-     * **Note** This event is only triggered if the field is editable.
+     * **Note:** This event is only triggered if the field is editable.
      *
      * @since 1.82.0
      */
@@ -12209,7 +12721,7 @@ declare module "sap/ui/mdc/field/FieldInfoBase" {
      * Returns the content of the popover.
      *
      *
-     * @returns `Promise` with a popover content of type sap.ui.Control as result
+     * @returns `Promise` with a popover content of type sap.ui.core.Control as result
      */
     getContent(
       /**
@@ -12695,6 +13207,8 @@ declare module "sap/ui/mdc/filterbar/FilterBarBase" {
 
   import { IFilterSource, IFilter, IxState, State } from "sap/ui/mdc/library";
 
+  import InvisibleText from "sap/ui/core/InvisibleText";
+
   import FilterBarValidationStatus from "sap/ui/mdc/enums/FilterBarValidationStatus";
 
   import FilterField from "sap/ui/mdc/FilterField";
@@ -12788,6 +13302,18 @@ declare module "sap/ui/mdc/filterbar/FilterBarBase" {
      * @returns Metadata object describing this class
      */
     static getMetadata(): ElementMetadata;
+    /**
+     * Adds an `InvisibleText` to the `FilterBar` that can be used for accessibility purposes.
+     *
+     * @since 1.142
+     * @ui5-protected Do not call from applications (only from related classes in the framework)
+     */
+    addInvisibleText(
+      /**
+       * The invisible text to be added
+       */
+      oInvisibleText: InvisibleText
+    ): void;
     /**
      * Attaches event handler `fnFunction` to the {@link #event:filtersChanged filtersChanged} event of this
      * `sap.ui.mdc.filterbar.FilterBarBase`.
@@ -12975,6 +13501,19 @@ declare module "sap/ui/mdc/filterbar/FilterBarBase" {
       mParameters?: FilterBarBase$SearchEventParameters
     ): this;
     /**
+     * Updates the Adapt Filters button text based on the number of assigned filters.
+     *
+     * @ui5-protected Do not call from applications (only from related classes in the framework)
+     *
+     * @returns text for the Adapt Filters button
+     */
+    getAdaptFiltersButtonText(
+      /**
+       * number of assigned filters
+       */
+      iFilterCount: int
+    ): string;
+    /**
      * Gets the labels of all filters with a value assignment.
      *
      * **Note:** Filters annotated with `hiddenFilters` will not be considered.
@@ -13051,6 +13590,20 @@ declare module "sap/ui/mdc/filterbar/FilterBarBase" {
      * Also, the `conditions` property of `filterItems` is managed by the control.
      */
     getFilterItems(): FilterField[];
+    /**
+     * Retrieves an `InvisibleText` by ID.
+     *
+     * @since 1.142
+     * @ui5-protected Do not call from applications (only from related classes in the framework)
+     *
+     * @returns The invisible text with the given ID
+     */
+    getInvisibleText(
+      /**
+       * ID of the invisible text to be retrieved
+       */
+      sId: string
+    ): InvisibleText;
     /**
      * Gets current value of property {@link #getLiveMode liveMode}.
      *
@@ -13482,9 +14035,9 @@ declare module "sap/ui/mdc/filterbar/FilterBarBase" {
 declare module "sap/ui/mdc/filterbar/IFilterContainer" {
   import { default as UI5Element, $ElementSettings } from "sap/ui/core/Element";
 
-  import FilterField from "sap/ui/mdc/FilterField";
-
   import Control from "sap/ui/core/Control";
+
+  import FilterField from "sap/ui/mdc/FilterField";
 
   import ElementMetadata from "sap/ui/core/ElementMetadata";
 
@@ -13536,6 +14089,17 @@ declare module "sap/ui/mdc/filterbar/IFilterContainer" {
      * @returns Metadata object describing this class
      */
     static getMetadata(): ElementMetadata;
+    /**
+     * Adds a button control to the inner layout of the `IFilterContainer`.
+     *
+     * @since 1.144
+     */
+    addButton(
+      /**
+       * Control that is added
+       */
+      oControl: Control
+    ): void;
     /**
      * Overwrites the default exit to clean up the created layout properly.
      */
@@ -13707,19 +14271,21 @@ declare module "sap/ui/mdc/FilterField" {
 
   /**
    * The `FilterField` control is used to filter data based on the conditions. The conditions are managed
-   * in the corresponding {@link sap.ui.mdc.FilterBar FilterBar}. That is why the `conditions` property must
-   * be bound to the related conditions in the {@link sap.ui.mdc.FilterBar FilterBar}. The type of this data
-   * must be defined in the `dataType` property.
+   * in the corresponding {@link sap.ui.mdc.FilterBar FilterBar}. That is why the {@link sap.ui.mdc.field.FieldBase#bindConditions conditions }
+   * property must be bound to the related conditions in the {@link sap.ui.mdc.FilterBar FilterBar}. The type
+   * of this data must be defined in the {@link sap.ui.mdc.field.FieldBase#setDataType dataType} property.
    *
    * Based on the data type settings, a default control is rendered by the `FilterField` as follows:
    *
    *
    * 	 - In display mode, usually a {@link sap.m.Text Text} control is rendered.
-   * 	 - If `multipleLines` is set, an {@link sap.m.ExpandableText ExpandableText} control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, an {@link sap.m.ExpandableText ExpandableText }
+   *     control is rendered.
    * 	 - If multiple values are allowed, a {@link sap.m.Tokenizer Tokenizer} control is rendered.
    * 	 - In edit mode, usually an {@link sap.m.Input Input} control is rendered.
    * 	 - If multiple values are allowed, a {@link sap.m.MultiInput MultiInput} control is rendered.
-   * 	 - If `multipleLines` is set, a {@link sap.m.TextArea TextArea} control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, a {@link sap.m.TextArea TextArea }
+   *     control is rendered.
    * 	 - If a date type or a date/time type is used and only one condition is supported, a {@link sap.m.DynamicDateRange DynamicDateRange }
    *     control is rendered.
    * 	 - If a date type is used and only single values are allowed, a {@link sap.m.DatePicker DatePicker }
@@ -13812,8 +14378,8 @@ declare module "sap/ui/mdc/FilterField" {
     /**
      * Adds an operator to the list of known operators.
      *
-     * **Note**: If no operator is set, the used `datatType` of the `FilterField` defines the set of default
-     * operators. The standard operators are mentioned in {@link sap.ui.mdc.enums.OperatorName OperatorName}.
+     * **Note:** If no operator is set, the used {@link sap.ui.mdc.field.FieldBase#getDataType dataType} of
+     * the `FilterField` defines the set of default operators. The standard operators are mentioned in {@link sap.ui.mdc.enums.OperatorName OperatorName}.
      *
      *
      * @returns Reference to `this` to allow method chaining
@@ -13827,7 +14393,7 @@ declare module "sap/ui/mdc/FilterField" {
     /**
      * Adds an array of operators to the list of known operators.
      *
-     * **Note**: `aOperators` can be the name of an {@link sap.ui.mdc.condition.Operator Operator}, the instance
+     * **Note:** `aOperators` can be the name of an {@link sap.ui.mdc.condition.Operator Operator}, the instance
      * itself, or multiple operators inside an array. The standard operators are mentioned in {@link sap.ui.mdc.enums.OperatorName OperatorName}.
      *
      *
@@ -13845,7 +14411,8 @@ declare module "sap/ui/mdc/FilterField" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.FilterField` itself.
      *
-     * This event is fired when the `conditions` property of the `FilterField` is changed by a user interaction.
+     * This event is fired when the {@link sap.ui.mdc.field.FieldBase#getConditions conditions} property of
+     * the `FilterField` is changed by a user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -13873,7 +14440,8 @@ declare module "sap/ui/mdc/FilterField" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.FilterField` itself.
      *
-     * This event is fired when the `conditions` property of the `FilterField` is changed by a user interaction.
+     * This event is fired when the {@link sap.ui.mdc.field.FieldBase#getConditions conditions} property of
+     * the `FilterField` is changed by a user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -13940,7 +14508,7 @@ declare module "sap/ui/mdc/FilterField" {
      * Default operator name for conditions. If empty, the relevant default operator depending on the data type
      * used is taken.
      *
-     * **Note**: `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
+     * **Note:** `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
      * instance itself.
      *
      * @since 1.88.0
@@ -13997,7 +14565,7 @@ declare module "sap/ui/mdc/FilterField" {
     /**
      * Removes all given operators from the list of known operators.
      *
-     * **Note**: `aOperators` can be the name of an {@link sap.ui.mdc.condition.Operator Operator}, the instance
+     * **Note:** `aOperators` can be the name of an {@link sap.ui.mdc.condition.Operator Operator}, the instance
      * itself, or multiple operators inside an array. The standard operators are mentioned in {@link sap.ui.mdc.enums.OperatorName OperatorName}.
      */
     removeOperators(
@@ -14032,7 +14600,7 @@ declare module "sap/ui/mdc/FilterField" {
      * Default operator name for conditions. If empty, the relevant default operator depending on the data type
      * used is taken.
      *
-     * **Note**: `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
+     * **Note:** `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
      * instance itself.
      *
      * When called with a value of `null` or `undefined`, the default value of the property will be restored.
@@ -14119,7 +14687,7 @@ declare module "sap/ui/mdc/FilterField" {
      * Default operator name for conditions. If empty, the relevant default operator depending on the data type
      * used is taken.
      *
-     * **Note**: `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
+     * **Note:** `defaultOperator` can be the name of an {@link sap.ui.mdc.condition.Operator Operator} or the
      * instance itself.
      *
      * @since 1.88.0
@@ -14144,7 +14712,8 @@ declare module "sap/ui/mdc/FilterField" {
     additionalDataType?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * This event is fired when the `conditions` property of the `FilterField` is changed by a user interaction.
+     * This event is fired when the {@link sap.ui.mdc.field.FieldBase#getConditions conditions} property of
+     * the `FilterField` is changed by a user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      */
@@ -14190,6 +14759,917 @@ declare module "sap/ui/mdc/FilterField" {
     FilterField$ChangeEventParameters,
     FilterField
   >;
+}
+
+declare module "sap/ui/mdc/Geomap" {
+  import { default as Control, $ControlSettings } from "sap/ui/mdc/Control";
+
+  import { IFilterSource, IxState } from "sap/ui/mdc/library";
+
+  import Event from "sap/ui/base/Event";
+
+  import { CSSSize } from "sap/ui/core/library";
+
+  import Item from "sap/ui/mdc/geomap/Item";
+
+  import ElementMetadata from "sap/ui/core/ElementMetadata";
+
+  import { PropertyInfo as PropertyInfo1 } from "sap/ui/mdc/util/PropertyHelper";
+
+  import {
+    PropertyBindingInfo,
+    AggregationBindingInfo,
+  } from "sap/ui/base/ManagedObject";
+
+  /**
+   * The `Geomap` control creates a geomap based on metadata and the configuration specified.
+   *  **Note:** The geomap needs to be created inside the `GeomapDelegate`.
+   *
+   * @experimental As of version 1.142.
+   */
+  export default class Geomap
+    extends Control
+    implements IFilterSource, IxState
+  {
+    __implements__sap_ui_mdc_IFilterSource: boolean;
+    __implements__sap_ui_mdc_IxState: boolean;
+    /**
+     * Constructor for a new Geomap.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     * See:
+     * 	{@link https://ui5.sap.com/#/topic/1dd2aa91115d43409452a271d11be95b sap.ui.mdc}
+     */
+    constructor(
+      /**
+       * Initial settings for the new control
+       */
+      mSettings?: $GeomapSettings
+    );
+    /**
+     * Constructor for a new Geomap.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     * See:
+     * 	{@link https://ui5.sap.com/#/topic/1dd2aa91115d43409452a271d11be95b sap.ui.mdc}
+     */
+    constructor(
+      /**
+       * ID for the new control, generated automatically if no id is given
+       */
+      sId?: string,
+      /**
+       * Initial settings for the new control
+       */
+      mSettings?: $GeomapSettings
+    );
+
+    /**
+     * Creates a new subclass of class sap.ui.mdc.Geomap with name `sClassName` and enriches it with the information
+     * contained in `oClassInfo`.
+     *
+     * `oClassInfo` might contain the same kind of information as described in {@link sap.ui.mdc.Control.extend}.
+     *
+     *
+     * @returns Created class / constructor function
+     */
+    static extend<T extends Record<string, unknown>>(
+      /**
+       * Name of the class being created
+       */
+      sClassName: string,
+      /**
+       * Object literal with information about the class
+       */
+      oClassInfo?: sap.ClassInfo<T, Geomap>,
+      /**
+       * Constructor function for the metadata object; if not given, it defaults to the metadata implementation
+       * used by this class
+       */
+      FNMetaImpl?: Function
+    ): Function;
+    /**
+     * Returns a metadata object for class sap.ui.mdc.Geomap.
+     *
+     *
+     * @returns Metadata object describing this class
+     */
+    static getMetadata(): ElementMetadata;
+    /**
+     * Attaches event handler `fnFunction` to the {@link #event:zoomChange zoomChange} event of this `sap.ui.mdc.Geomap`.
+     *
+     * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
+     * otherwise it will be bound to this `sap.ui.mdc.Geomap` itself.
+     *
+     * This event is fired when zooming is performed on the map.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    attachZoomChange(
+      /**
+       * An application-specific payload object that will be passed to the event handler along with the event
+       * object when firing the event
+       */
+      oData: object,
+      /**
+       * The function to be called when the event occurs
+       */
+      fnFunction: (p1: Event) => void,
+      /**
+       * Context object to call the event handler with. Defaults to this `sap.ui.mdc.Geomap` itself
+       */
+      oListener?: object
+    ): this;
+    /**
+     * Attaches event handler `fnFunction` to the {@link #event:zoomChange zoomChange} event of this `sap.ui.mdc.Geomap`.
+     *
+     * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
+     * otherwise it will be bound to this `sap.ui.mdc.Geomap` itself.
+     *
+     * This event is fired when zooming is performed on the map.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    attachZoomChange(
+      /**
+       * The function to be called when the event occurs
+       */
+      fnFunction: (p1: Event) => void,
+      /**
+       * Context object to call the event handler with. Defaults to this `sap.ui.mdc.Geomap` itself
+       */
+      oListener?: object
+    ): this;
+    /**
+     * Destroys all the items in the aggregation {@link #getItems items}.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    destroyItems(): this;
+    /**
+     * Detaches event handler `fnFunction` from the {@link #event:zoomChange zoomChange} event of this `sap.ui.mdc.Geomap`.
+     *
+     * The passed function and listener object must match the ones used for event registration.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    detachZoomChange(
+      /**
+       * The function to be called, when the event occurs
+       */
+      fnFunction: (p1: Event) => void,
+      /**
+       * Context object on which the given function had to be called
+       */
+      oListener?: object
+    ): this;
+    /**
+     * Fires event {@link #event:zoomChange zoomChange} to attached listeners.
+     *
+     * @ui5-protected Do not call from applications (only from related classes in the framework)
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    fireZoomChange(
+      /**
+       * Parameters to pass along with the event
+       */
+      mParameters?: object
+    ): this;
+    /**
+     * Gets current value of property {@link #getCenterLat centerLat}.
+     *
+     * Latitude of the point where the map is centered
+     *
+     *
+     * @returns Value of property `centerLat`
+     */
+    getCenterLat(): float;
+    /**
+     * Gets current value of property {@link #getCenterLng centerLng}.
+     *
+     * Longitude of the point where the map is centered
+     *
+     *
+     * @returns Value of property `centerLng`
+     */
+    getCenterLng(): float;
+    /**
+     * Gets current value of property {@link #getDelegate delegate}.
+     *
+     * Object related to the `Delegate` module that provides the required APIs to execute model-specific logic.
+     *  The object has the following properties:
+     * 	 - `name` defines the path to the `Delegate` module
+     * 	 - `payload` (optional) defines application-specific information that can be used in the given delegate
+     *      Sample delegate object:
+     * ```javascript
+     * {
+     * 	name: "sap/ui/mdc/BaseDelegate",
+     * 	payload: {}
+     * }```
+     *  **Note:** Ensure that the related file can be requested (any required library has to be loaded before
+     * that).
+     *  Do not bind or modify the module. This property can only be configured during control initialization.
+     *
+     * Default value is `...see text or source`.
+     *
+     * @experimental
+     *
+     * @returns Value of property `delegate`
+     */
+    getDelegate(): object;
+    /**
+     * Gets current value of property {@link #getEnableCopyrightControl enableCopyrightControl}.
+     *
+     * Enables the copyright control for the map
+     *
+     * Default value is `false`.
+     *
+     *
+     * @returns Value of property `enableCopyrightControl`
+     */
+    getEnableCopyrightControl(): boolean;
+    /**
+     * Gets current value of property {@link #getEnableFullscreenControl enableFullscreenControl}.
+     *
+     * Enables the full screen control for the map
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Value of property `enableFullscreenControl`
+     */
+    getEnableFullscreenControl(): boolean;
+    /**
+     * Gets current value of property {@link #getEnableNavigationControl enableNavigationControl}.
+     *
+     * Enables the navigation & compas control for the map
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Value of property `enableNavigationControl`
+     */
+    getEnableNavigationControl(): boolean;
+    /**
+     * Gets current value of property {@link #getEnableScaleControl enableScaleControl}.
+     *
+     * Enables the scale control for the map
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Value of property `enableScaleControl`
+     */
+    getEnableScaleControl(): boolean;
+    /**
+     * Gets current value of property {@link #getEnableSelectionControl enableSelectionControl}.
+     *
+     * Enables the selection control for the map
+     *
+     * Default value is `false`.
+     *
+     *
+     * @returns Value of property `enableSelectionControl`
+     */
+    getEnableSelectionControl(): boolean;
+    /**
+     * Gets current value of property {@link #getHeader header}.
+     *
+     * Header text that appears in the geomap
+     *
+     * Default value is `empty string`.
+     *
+     *
+     * @returns Value of property `header`
+     */
+    getHeader(): string;
+    /**
+     * Gets current value of property {@link #getHeight height}.
+     *
+     * Defines the height of the geomap.
+     *
+     * Default value is `"700px"`.
+     *
+     *
+     * @returns Value of property `height`
+     */
+    getHeight(): CSSSize;
+    /**
+     * Gets content of aggregation {@link #getItems items}.
+     *
+     * Aggregates the items to be displayed in the geomap. Note: As items are custom elements defined as part
+     * of the webc library the type here could not be strictly defined or used a generic one so supported types
+     * are limited to those supported by the webc library.
+     */
+    getItems(): Item[];
+    /**
+     * Gets current value of property {@link #getWidth width}.
+     *
+     * Defines the width of the geomap.
+     *
+     * Default value is `"700px"`.
+     *
+     *
+     * @returns Value of property `width`
+     */
+    getWidth(): CSSSize;
+    /**
+     * Gets current value of property {@link #getZoom zoom}.
+     *
+     * Zoom level of the map - the bigger, the more the map is zoomed
+     *
+     *
+     * @returns Value of property `zoom`
+     */
+    getZoom(): float;
+    /**
+     * Checks for the provided `sap.ui.mdc.geomap.Item` in the aggregation {@link #getItems items}. and returns
+     * its index if found or -1 otherwise.
+     *
+     *
+     * @returns The index of the provided control in the aggregation if found, or -1 otherwise
+     */
+    indexOfItem(
+      /**
+       * The item whose index is looked for
+       */
+      oItem: Item
+    ): int;
+    /**
+     * Inserts a item into the aggregation {@link #getItems items}.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    insertItem(
+      /**
+       * The item to insert; if empty, nothing is inserted
+       */
+      oItem: Item,
+      /**
+       * The `0`-based index the item should be inserted at; for a negative value of `iIndex`, the item is inserted
+       * at position 0; for a value greater than the current size of the aggregation, the item is inserted at
+       * the last position
+       */
+      iIndex: int
+    ): this;
+    /**
+     * Executes a rebind considering the provided external and inbuilt filtering.
+     *
+     * @since 1.98
+     *
+     * @returns A `Promise` that resolves after rebind is executed, and rejects if rebind cannot be executed,
+     * for example because there are invalid filters.
+     */
+    rebind(): Promise<any>;
+    /**
+     * Sets a new value for property {@link #getCenterLat centerLat}.
+     *
+     * Latitude of the point where the map is centered
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setCenterLat(
+      /**
+       * New value for property `centerLat`
+       */
+      fCenterLat: float
+    ): this;
+    /**
+     * Sets a new value for property {@link #getCenterLng centerLng}.
+     *
+     * Longitude of the point where the map is centered
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setCenterLng(
+      /**
+       * New value for property `centerLng`
+       */
+      fCenterLng: float
+    ): this;
+    /**
+     * Sets a new value for property {@link #getDelegate delegate}.
+     *
+     * Object related to the `Delegate` module that provides the required APIs to execute model-specific logic.
+     *  The object has the following properties:
+     * 	 - `name` defines the path to the `Delegate` module
+     * 	 - `payload` (optional) defines application-specific information that can be used in the given delegate
+     *      Sample delegate object:
+     * ```javascript
+     * {
+     * 	name: "sap/ui/mdc/BaseDelegate",
+     * 	payload: {}
+     * }```
+     *  **Note:** Ensure that the related file can be requested (any required library has to be loaded before
+     * that).
+     *  Do not bind or modify the module. This property can only be configured during control initialization.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `...see text or source`.
+     *
+     * @experimental
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setDelegate(
+      /**
+       * New value for property `delegate`
+       */
+      oDelegate?: object
+    ): this;
+    /**
+     * Sets a new value for property {@link #getEnableCopyrightControl enableCopyrightControl}.
+     *
+     * Enables the copyright control for the map
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `false`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setEnableCopyrightControl(
+      /**
+       * New value for property `enableCopyrightControl`
+       */
+      bEnableCopyrightControl?: boolean
+    ): this;
+    /**
+     * Sets a new value for property {@link #getEnableFullscreenControl enableFullscreenControl}.
+     *
+     * Enables the full screen control for the map
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setEnableFullscreenControl(
+      /**
+       * New value for property `enableFullscreenControl`
+       */
+      bEnableFullscreenControl?: boolean
+    ): this;
+    /**
+     * Sets a new value for property {@link #getEnableNavigationControl enableNavigationControl}.
+     *
+     * Enables the navigation & compas control for the map
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setEnableNavigationControl(
+      /**
+       * New value for property `enableNavigationControl`
+       */
+      bEnableNavigationControl?: boolean
+    ): this;
+    /**
+     * Sets a new value for property {@link #getEnableScaleControl enableScaleControl}.
+     *
+     * Enables the scale control for the map
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `true`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setEnableScaleControl(
+      /**
+       * New value for property `enableScaleControl`
+       */
+      bEnableScaleControl?: boolean
+    ): this;
+    /**
+     * Sets a new value for property {@link #getEnableSelectionControl enableSelectionControl}.
+     *
+     * Enables the selection control for the map
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `false`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setEnableSelectionControl(
+      /**
+       * New value for property `enableSelectionControl`
+       */
+      bEnableSelectionControl?: boolean
+    ): this;
+    /**
+     * Sets a new value for property {@link #getHeader header}.
+     *
+     * Header text that appears in the geomap
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `empty string`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setHeader(
+      /**
+       * New value for property `header`
+       */
+      sHeader?: string
+    ): this;
+    /**
+     * Sets a new value for property {@link #getHeight height}.
+     *
+     * Defines the height of the geomap.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `"700px"`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setHeight(
+      /**
+       * New value for property `height`
+       */
+      sHeight?: CSSSize
+    ): this;
+    /**
+     * Sets a new value for property {@link #getWidth width}.
+     *
+     * Defines the width of the geomap.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `"700px"`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setWidth(
+      /**
+       * New value for property `width`
+       */
+      sWidth?: CSSSize
+    ): this;
+    /**
+     * Sets a new value for property {@link #getZoom zoom}.
+     *
+     * Zoom level of the map - the bigger, the more the map is zoomed
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setZoom(
+      /**
+       * New value for property `zoom`
+       */
+      fZoom: float
+    ): this;
+  }
+  /**
+   * An object literal describing a data property in the context of a {@link sap.ui.mdc.Geomap}.
+   *
+   * When specifying the `PropertyInfo` objects in the {@link sap.ui.mdc.Geomap#getPropertyInfo propertyInfo }
+   * property, the following attributes need to be specified:
+   * 	 - `key`
+   * 	 - `label`
+   * 	 - `visible`
+   * 	 - `path`
+   * 	 - `dataType`
+   * 	 - `formatOptions`
+   * 	 - `constraints`
+   *
+   * @experimental As of version 1.142.
+   */
+  export type PropertyInfo = PropertyInfo1 & {
+    /**
+     * Defines the key that the property is related to
+     */
+    key?: string;
+    /**
+     * Defines the label of the property associated with the key.
+     */
+    label?: string;
+    /**
+     * Defines the visibility of the property.
+     */
+    visible?: boolean;
+    /**
+     * The path of the property in the data source.
+     */
+    path?: string;
+    /**
+     * Defines the data type associated to the property.
+     */
+    dataType?: string;
+    /**
+     * Defines if any format options are applied to the property.
+     */
+    formatOptions?: object;
+    /**
+     * Defines if any constraints are applied to the property.
+     */
+    constraints?: object;
+  };
+
+  /**
+   * Describes the settings that can be provided to the Geomap constructor.
+   *
+   * @experimental As of version 1.142.
+   */
+  export interface $GeomapSettings extends $ControlSettings {
+    /**
+     * Defines the width of the geomap.
+     */
+    width?: CSSSize | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Defines the height of the geomap.
+     */
+    height?: CSSSize | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Header text that appears in the geomap
+     */
+    header?: string | PropertyBindingInfo;
+
+    /**
+     * Latitude of the point where the map is centered
+     */
+    centerLat?: float | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Longitude of the point where the map is centered
+     */
+    centerLng?: float | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Zoom level of the map - the bigger, the more the map is zoomed
+     */
+    zoom?: float | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Enables the selection control for the map
+     */
+    enableSelectionControl?: boolean | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Enables the navigation & compas control for the map
+     */
+    enableNavigationControl?: boolean | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Enables the full screen control for the map
+     */
+    enableFullscreenControl?: boolean | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Enables the scale control for the map
+     */
+    enableScaleControl?: boolean | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Enables the copyright control for the map
+     */
+    enableCopyrightControl?: boolean | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Object related to the `Delegate` module that provides the required APIs to execute model-specific logic.
+     *  The object has the following properties:
+     * 	 - `name` defines the path to the `Delegate` module
+     * 	 - `payload` (optional) defines application-specific information that can be used in the given delegate
+     *      Sample delegate object:
+     * ```javascript
+     * {
+     * 	name: "sap/ui/mdc/BaseDelegate",
+     * 	payload: {}
+     * }```
+     *  **Note:** Ensure that the related file can be requested (any required library has to be loaded before
+     * that).
+     *  Do not bind or modify the module. This property can only be configured during control initialization.
+     *
+     * @experimental
+     */
+    delegate?: object | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Specifies the geomap metadata.
+     *  **Note:** This property must not be bound.
+     *  **Note:** This property is exclusively used for handling SAPUI5 flexibility changes. Do not use it otherwise.
+     *  **Note**: Existing properties (set via `sap.ui.mdc.Geomap#setPropertyInfo`) must not be removed and
+     * their attributes must not be changed during the {@link module:sap/ui/mdc/GeomapDelegate.fetchProperties fetchProperties }
+     * callback. Otherwise validation errors might occur whenever personalization-related control features (such
+     * as the opening of any personalization dialog) are activated.
+     *
+     * **Note**: For more information about the supported inner elements, see {@link sap.ui.mdc.geomap.PropertyInfo PropertyInfo}.
+     */
+    propertyInfo?: object | PropertyBindingInfo | `{${string}}`;
+
+    /**
+     * Aggregates the items to be displayed in the geomap. Note: As items are custom elements defined as part
+     * of the webc library the type here could not be strictly defined or used a generic one so supported types
+     * are limited to those supported by the webc library.
+     */
+    items?: Item[] | Item | AggregationBindingInfo | `{${string}}`;
+
+    /**
+     * This event is fired when zooming is performed on the map.
+     */
+    zoomChange?: (oEvent: Event) => void;
+  }
+
+  /**
+   * Parameters of the Geomap#zoomChange event.
+   */
+  export interface Geomap$ZoomChangeEventParameters {}
+
+  /**
+   * Event object of the Geomap#zoomChange event.
+   */
+  export type Geomap$ZoomChangeEvent = Event<
+    Geomap$ZoomChangeEventParameters,
+    Geomap
+  >;
+}
+
+declare module "sap/ui/mdc/geomap/Item" {
+  import { default as UI5Element, $ElementSettings } from "sap/ui/core/Element";
+
+  import ElementMetadata from "sap/ui/core/ElementMetadata";
+
+  import { PropertyBindingInfo } from "sap/ui/base/ManagedObject";
+
+  /**
+   * The `Item` element for the geomap/property metadata used within MDC Geomap.
+   *
+   * @experimental As of version 1.142.
+   */
+  export default class Item extends UI5Element {
+    /**
+     * Constructor for a new `Item`.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     */
+    constructor(
+      /**
+       * initial settings for the new element
+       */
+      mSettings?: $ItemSettings
+    );
+    /**
+     * Constructor for a new `Item`.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     */
+    constructor(
+      /**
+       * ID for the new element, generated automatically if no ID is given
+       */
+      sId?: string,
+      /**
+       * initial settings for the new element
+       */
+      mSettings?: $ItemSettings
+    );
+
+    /**
+     * Creates a new subclass of class sap.ui.mdc.geomap.Item with name `sClassName` and enriches it with the
+     * information contained in `oClassInfo`.
+     *
+     * `oClassInfo` might contain the same kind of information as described in {@link sap.ui.core.Element.extend}.
+     *
+     *
+     * @returns Created class / constructor function
+     */
+    static extend<T extends Record<string, unknown>>(
+      /**
+       * Name of the class being created
+       */
+      sClassName: string,
+      /**
+       * Object literal with information about the class
+       */
+      oClassInfo?: sap.ClassInfo<T, Item>,
+      /**
+       * Constructor function for the metadata object; if not given, it defaults to the metadata implementation
+       * used by this class
+       */
+      FNMetaImpl?: Function
+    ): Function;
+    /**
+     * Returns a metadata object for class sap.ui.mdc.geomap.Item.
+     *
+     *
+     * @returns Metadata object describing this class
+     */
+    static getMetadata(): ElementMetadata;
+    /**
+     * Gets current value of property {@link #getLabel label}.
+     *
+     * Label for the item, either as a string literal or by a pointer, using the binding to some property containing
+     * the label.
+     *
+     *
+     * @returns Value of property `label`
+     */
+    getLabel(): string;
+    /**
+     * Gets current value of property {@link #getPropertyKey propertyKey}.
+     *
+     * The unique identifier of the geomap item that reflects the name of property in the PropertyInfo.
+     *
+     * @since 1.142
+     *
+     * @returns Value of property `propertyKey`
+     */
+    getPropertyKey(): string;
+    /**
+     * Sets a new value for property {@link #getLabel label}.
+     *
+     * Label for the item, either as a string literal or by a pointer, using the binding to some property containing
+     * the label.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setLabel(
+      /**
+       * New value for property `label`
+       */
+      sLabel: string
+    ): this;
+    /**
+     * Sets a new value for property {@link #getPropertyKey propertyKey}.
+     *
+     * The unique identifier of the geomap item that reflects the name of property in the PropertyInfo.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * @since 1.142
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setPropertyKey(
+      /**
+       * New value for property `propertyKey`
+       */
+      sPropertyKey: string
+    ): this;
+  }
+  /**
+   * Describes the settings that can be provided to the Item constructor.
+   *
+   * @experimental As of version 1.142.
+   */
+  export interface $ItemSettings extends $ElementSettings {
+    /**
+     * The unique identifier of the geomap item that reflects the name of property in the PropertyInfo.
+     *
+     * @since 1.142
+     */
+    propertyKey?: string | PropertyBindingInfo;
+
+    /**
+     * Label for the item, either as a string literal or by a pointer, using the binding to some property containing
+     * the label.
+     */
+    label?: string | PropertyBindingInfo;
+  }
 }
 
 declare module "sap/ui/mdc/Link" {
@@ -14887,9 +16367,11 @@ declare module "sap/ui/mdc/MultiValueField" {
    *
    *
    * 	 - In display mode, usually a {@link sap.m.Tokenizer Tokenizer} control is rendered.
-   * 	 - If `multipleLines` is set, an {@link sap.m.ExpandableText ExpandableText} control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, an {@link sap.m.ExpandableText ExpandableText }
+   *     control is rendered.
    * 	 - In edit mode, usually a {@link sap.m.MultiInput MultiInput} control is rendered.
-   * 	 - If `multipleLines` is set, a {@link sap.m.TextArea TextArea} control is rendered.
+   * 	 - If {@link sap.ui.mdc.field.FieldBase#getMultipleLines multipleLines} is set, a {@link sap.m.TextArea TextArea }
+   *     control is rendered.
    *
    * @since 1.93.0
    */
@@ -14980,7 +16462,7 @@ declare module "sap/ui/mdc/MultiValueField" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.MultiValueField` itself.
      *
-     * This event is fired when the `items` aggregation of the field is changed by user interaction.
+     * This event is fired when the {@link #getItems items} aggregation of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -15008,7 +16490,7 @@ declare module "sap/ui/mdc/MultiValueField" {
      * When called, the context of the event handler (its `this`) will be bound to `oListener` if specified,
      * otherwise it will be bound to this `sap.ui.mdc.MultiValueField` itself.
      *
-     * This event is fired when the `items` aggregation of the field is changed by user interaction.
+     * This event is fired when the {@link #getItems items} aggregation of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      *
@@ -15181,7 +16663,7 @@ declare module "sap/ui/mdc/MultiValueField" {
      * Items of the `MultiValueField` control.
      *
      * The items are not updated by user input or value help selection automatically. That's because an aggregation
-     * binding can only be updated by the model, not by the bound aggregation. Therefore, the {@link module:sap/ui/mdc/field/MultiValueFieldDelegate.updateItems MultiValueFieldDelegate.updateItems }
+     * binding can only be updated by the model, not by the bound aggregation. Therefore, the {@link module:sap/ui/mdc/field/MultiValueFieldDelegate.updateItemsFromConditions MultiValueFieldDelegate.updateItemsFromConditions }
      * function needs to be implemented to update the items after a user interaction.
      */
     getItems(): MultiValueFieldItem[];
@@ -15422,7 +16904,7 @@ declare module "sap/ui/mdc/MultiValueField" {
      * Items of the `MultiValueField` control.
      *
      * The items are not updated by user input or value help selection automatically. That's because an aggregation
-     * binding can only be updated by the model, not by the bound aggregation. Therefore, the {@link module:sap/ui/mdc/field/MultiValueFieldDelegate.updateItems MultiValueFieldDelegate.updateItems }
+     * binding can only be updated by the model, not by the bound aggregation. Therefore, the {@link module:sap/ui/mdc/field/MultiValueFieldDelegate.updateItemsFromConditions MultiValueFieldDelegate.updateItemsFromConditions }
      * function needs to be implemented to update the items after a user interaction.
      */
     items?:
@@ -15432,7 +16914,7 @@ declare module "sap/ui/mdc/MultiValueField" {
       | `{${string}}`;
 
     /**
-     * This event is fired when the `items` aggregation of the field is changed by user interaction.
+     * This event is fired when the {@link #getItems items} aggregation of the field is changed by user interaction.
      *
      * **Note** This event is only triggered if the used content control has a change event.
      */
@@ -15446,8 +16928,9 @@ declare module "sap/ui/mdc/MultiValueField" {
     /**
      * The new items of the `MultiValueField` control.
      *
-     * If a `ValueHelp` element is assigned to the `MultiValueField` control, the `key` of the items is used
-     * as key for the `ValueHelp` items.
+     * If a {@link sap.ui.mdc.field.FieldBase#getValueHelp ValueHelp} element is assigned to the `MultiValueField`
+     * control, the {@link sap.ui.mdc.field.MultiValueFieldItem#getKey key} of the items is used as key for
+     * the {@link sap.ui.mdc.field.FieldBase#getValueHelp ValueHelp} items.
      */
     items?: MultiValueFieldItem[];
 
@@ -15569,7 +17052,7 @@ declare module "sap/ui/mdc/p13n/StateUtil" {
      * Retrieves the externalized state for a given control instance. The retrieved state is equivalent to the
      * `getCurrentState` API for the given control, after all necessary changes have been applied (for example,
      * variant appliance and `p13n, StateUtil` changes). After the returned `Promise` has been resolved, the
-     * returned state is in sync with the according state object of the MDC control (for example, `filterConditions`
+     * returned state is in sync with the corresponding state object of the MDC control (for example, `filterConditions`
      * for the `FilterBar` control).
      *
      *
@@ -15712,6 +17195,19 @@ declare module "sap/ui/mdc/Table" {
      * @returns Metadata object describing this class
      */
     static getMetadata(): ElementMetadata;
+    /**
+     * Adds some tableAction to the aggregation {@link #getTableActions tableActions}.
+     *
+     * @since 1.143
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    addTableAction(
+      /**
+       * The tableAction to add; if empty, nothing is inserted
+       */
+      oTableAction: Control1
+    ): this;
     /**
      * Attaches event handler `fnFunction` to the {@link #event:beforeExport beforeExport} event of this `sap.ui.mdc.Table`.
      *
@@ -16017,6 +17513,14 @@ declare module "sap/ui/mdc/Table" {
      * @returns Reference to `this` in order to allow method chaining
      */
     destroyRowSettings(): this;
+    /**
+     * Destroys all the tableActions in the aggregation {@link #getTableActions tableActions}.
+     *
+     * @since 1.143
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    destroyTableActions(): this;
     /**
      * Destroys the type in the aggregation {@link #getType type}.
      *
@@ -16584,6 +18088,20 @@ declare module "sap/ui/mdc/Table" {
      */
     getShowRowCount(): boolean;
     /**
+     * Gets content of aggregation {@link #getTableActions tableActions}.
+     *
+     * Additional table-related actions that are positioned together with other table-generated actions, based
+     * on the {@link sap.ui.mdc.table.ActionLayoutData ActionLayoutData} provided.
+     *
+     * **Note:** All actions should use layout data of the {@link sap.ui.mdc.table.ActionLayoutData ActionLayoutData }
+     * type to ensure correct ordering. Actions that do not use this layout data will be placed after the table-generated
+     * actions.
+     *  **Note:** Like other table-generated actions, these actions are excluded from the UI adaptation.
+     *
+     * @since 1.143
+     */
+    getTableActions(): Control1[];
+    /**
      * Gets current value of property {@link #getThreshold threshold}.
      *
      * Number of records to be requested from the model.
@@ -16667,6 +18185,20 @@ declare module "sap/ui/mdc/Table" {
       oColumn: Column
     ): int;
     /**
+     * Checks for the provided `sap.ui.core.Control` in the aggregation {@link #getTableActions tableActions}.
+     * and returns its index if found or -1 otherwise.
+     *
+     * @since 1.143
+     *
+     * @returns The index of the provided control in the aggregation if found, or -1 otherwise
+     */
+    indexOfTableAction(
+      /**
+       * The tableAction whose index is looked for
+       */
+      oTableAction: Control1
+    ): int;
+    /**
      * Returns a `Promise` that resolves after the table has been initialized, and after it has been created
      * or its type has been changed.
      *
@@ -16674,6 +18206,25 @@ declare module "sap/ui/mdc/Table" {
      * @returns A `Promise` that resolves after the table has been initialized
      */
     initialized(): Promise<any>;
+    /**
+     * Inserts a tableAction into the aggregation {@link #getTableActions tableActions}.
+     *
+     * @since 1.143
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    insertTableAction(
+      /**
+       * The tableAction to insert; if empty, nothing is inserted
+       */
+      oTableAction: Control1,
+      /**
+       * The `0`-based index the tableAction should be inserted at; for a negative value of `iIndex`, the tableAction
+       * is inserted at position 0; for a value greater than the current size of the aggregation, the tableAction
+       * is inserted at the last position
+       */
+      iIndex: int
+    ): this;
     /**
      * Checks whether the table is bound.
      *
@@ -16690,6 +18241,29 @@ declare module "sap/ui/mdc/Table" {
      * for example because there are invalid filters.
      */
     rebind(): Promise<any>;
+    /**
+     * Removes all the controls from the aggregation {@link #getTableActions tableActions}.
+     *
+     * Additionally, it unregisters them from the hosting UIArea.
+     *
+     * @since 1.143
+     *
+     * @returns An array of the removed elements (might be empty)
+     */
+    removeAllTableActions(): Control1[];
+    /**
+     * Removes a tableAction from the aggregation {@link #getTableActions tableActions}.
+     *
+     * @since 1.143
+     *
+     * @returns The removed tableAction or `null`
+     */
+    removeTableAction(
+      /**
+       * The tableAction to remove or its index or id
+       */
+      vTableAction: int | string | Control1
+    ): Control1 | null;
     /**
      * Scrolls the table to the row with the given index. Depending on the table type, this might cause additional
      * requests. If the given index is -1, it will scroll to the end of the table based on the length of the
@@ -17573,40 +19147,36 @@ declare module "sap/ui/mdc/Table" {
     threshold?: int | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the sort conditions.
+     * Defines the XML baseline for sort conditions in SAPUI5 flexibility.
      *
-     * **Note:** This property must not be bound. It is used exclusively for handling SAPUI5 flexibility changes.
-     * Do not use it otherwise.
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.73
      */
     sortConditions?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the filter conditions.
+     * Defines the XML baseline for filter conditions in SAPUI5 flexibility.
      *
-     * **Note:** This property must not be bound. It is used exclusively for handling SAPUI5 flexibility changes.
-     * Do not use it otherwise.
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.80.0
      */
     filterConditions?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the group conditions.
+     * Defines the XML baseline for group conditions in SAPUI5 flexibility.
      *
-     * **Note:** This property must not be bound. It is used exclusively for handling SAPUI5 flexibility changes.
-     * Do not use it otherwise.
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.87
      */
     groupConditions?: object | PropertyBindingInfo | `{${string}}`;
 
     /**
-     * Defines the aggregate conditions.
+     * Defines the XML baseline for aggregate conditions in SAPUI5 flexibility.
      *
-     * **Note:** This property must not be bound. It is exclusively used for handling SAPUI5 flexibility changes.
-     * Do not use it otherwise.
+     * **Note:** This property must not be bound. **Note:** This property must not be changed during runtime.
      *
      * @since 1.87
      */
@@ -17759,6 +19329,23 @@ declare module "sap/ui/mdc/Table" {
      * effects. Changes of the aggregation have to be made with the {@link sap.ui.mdc.p13n.StateUtil StateUtil}.
      */
     actions?: Control1[] | Control1 | AggregationBindingInfo | `{${string}}`;
+
+    /**
+     * Additional table-related actions that are positioned together with other table-generated actions, based
+     * on the {@link sap.ui.mdc.table.ActionLayoutData ActionLayoutData} provided.
+     *
+     * **Note:** All actions should use layout data of the {@link sap.ui.mdc.table.ActionLayoutData ActionLayoutData }
+     * type to ensure correct ordering. Actions that do not use this layout data will be placed after the table-generated
+     * actions.
+     *  **Note:** Like other table-generated actions, these actions are excluded from the UI adaptation.
+     *
+     * @since 1.143
+     */
+    tableActions?:
+      | Control1[]
+      | Control1
+      | AggregationBindingInfo
+      | `{${string}}`;
 
     /**
      * VariantManagement control for the table.
@@ -17973,6 +19560,138 @@ declare module "sap/ui/mdc/Table" {
     Table$SelectionChangeEventParameters,
     Table
   >;
+}
+
+declare module "sap/ui/mdc/table/ActionLayoutData" {
+  import {
+    default as OverflowToolbarLayoutData,
+    $OverflowToolbarLayoutDataSettings,
+  } from "sap/m/OverflowToolbarLayoutData";
+
+  import { IActionLayoutData } from "sap/ui/mdc/library";
+
+  import ElementMetadata from "sap/ui/core/ElementMetadata";
+
+  import TableActionPosition from "sap/ui/mdc/enums/TableActionPosition";
+
+  import { PropertyBindingInfo } from "sap/ui/base/ManagedObject";
+
+  /**
+   * Defines the layout data for the {@link sap.ui.mdc.Table#getActions actions} and {@link sap.ui.mdc.Table#getTableActions tableActions }
+   * of the {@link sap.ui.mdc.Table Table}.
+   *
+   * @since 1.143
+   */
+  export default class ActionLayoutData
+    extends OverflowToolbarLayoutData
+    implements IActionLayoutData
+  {
+    __implements__sap_ui_mdc_IActionLayoutData: boolean;
+    /**
+     * Constructor for a new `ActionLayoutData`.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     */
+    constructor(
+      /**
+       * Initial settings for the new layout data
+       */
+      mSettings?: $ActionLayoutDataSettings
+    );
+    /**
+     * Constructor for a new `ActionLayoutData`.
+     *
+     * Accepts an object literal `mSettings` that defines initial property values, aggregated and associated
+     * objects as well as event handlers. See {@link sap.ui.base.ManagedObject#constructor} for a general description
+     * of the syntax of the settings object.
+     */
+    constructor(
+      /**
+       * ID for the new layout data, generated automatically if no ID is given
+       */
+      sId?: string,
+      /**
+       * Initial settings for the new layout data
+       */
+      mSettings?: $ActionLayoutDataSettings
+    );
+
+    /**
+     * Creates a new subclass of class sap.ui.mdc.table.ActionLayoutData with name `sClassName` and enriches
+     * it with the information contained in `oClassInfo`.
+     *
+     * `oClassInfo` might contain the same kind of information as described in {@link sap.m.OverflowToolbarLayoutData.extend}.
+     *
+     *
+     * @returns Created class / constructor function
+     */
+    static extend<T extends Record<string, unknown>>(
+      /**
+       * Name of the class being created
+       */
+      sClassName: string,
+      /**
+       * Object literal with information about the class
+       */
+      oClassInfo?: sap.ClassInfo<T, ActionLayoutData>,
+      /**
+       * Constructor function for the metadata object; if not given, it defaults to the metadata implementation
+       * used by this class
+       */
+      FNMetaImpl?: Function
+    ): Function;
+    /**
+     * Returns a metadata object for class sap.ui.mdc.table.ActionLayoutData.
+     *
+     *
+     * @returns Metadata object describing this class
+     */
+    static getMetadata(): ElementMetadata;
+    /**
+     * Gets current value of property {@link #getPosition position}.
+     *
+     * Defines the position of the action within the group of table actions.
+     *
+     * Default value is `EndActions`.
+     *
+     *
+     * @returns Value of property `position`
+     */
+    getPosition(): TableActionPosition;
+    /**
+     * Sets a new value for property {@link #getPosition position}.
+     *
+     * Defines the position of the action within the group of table actions.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `EndActions`.
+     *
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setPosition(
+      /**
+       * New value for property `position`
+       */
+      sPosition?: TableActionPosition | keyof typeof TableActionPosition
+    ): this;
+  }
+  /**
+   * Describes the settings that can be provided to the ActionLayoutData constructor.
+   */
+  export interface $ActionLayoutDataSettings
+    extends $OverflowToolbarLayoutDataSettings {
+    /**
+     * Defines the position of the action within the group of table actions.
+     */
+    position?:
+      | (TableActionPosition | keyof typeof TableActionPosition)
+      | PropertyBindingInfo
+      | `{${string}}`;
+  }
 }
 
 declare module "sap/ui/mdc/table/Column" {
@@ -20028,6 +21747,8 @@ declare module "sap/ui/mdc/table/ResponsiveTableType" {
 
   import ElementMetadata from "sap/ui/core/ElementMetadata";
 
+  import TablePopinDisplay from "sap/ui/mdc/enums/TablePopinDisplay";
+
   import { PopinLayout } from "sap/m/library";
 
   import { PropertyBindingInfo } from "sap/ui/base/ManagedObject";
@@ -20128,6 +21849,18 @@ declare module "sap/ui/mdc/table/ResponsiveTableType" {
      */
     getGrowingMode(): TableGrowingMode;
     /**
+     * Gets current value of property {@link #getPopinDisplay popinDisplay}.
+     *
+     * Defines how the pop-in content is displayed.
+     *
+     * Default value is `Inline`.
+     *
+     * @since 1.143
+     *
+     * @returns Value of property `popinDisplay`
+     */
+    getPopinDisplay(): TablePopinDisplay;
+    /**
      * Gets current value of property {@link #getPopinLayout popinLayout}.
      *
      * Defines the layout in which the table pop-in rows are rendered.
@@ -20197,6 +21930,25 @@ declare module "sap/ui/mdc/table/ResponsiveTableType" {
        * New value for property `growingMode`
        */
       sGrowingMode?: TableGrowingMode | keyof typeof TableGrowingMode
+    ): this;
+    /**
+     * Sets a new value for property {@link #getPopinDisplay popinDisplay}.
+     *
+     * Defines how the pop-in content is displayed.
+     *
+     * When called with a value of `null` or `undefined`, the default value of the property will be restored.
+     *
+     * Default value is `Inline`.
+     *
+     * @since 1.143
+     *
+     * @returns Reference to `this` in order to allow method chaining
+     */
+    setPopinDisplay(
+      /**
+       * New value for property `popinDisplay`
+       */
+      sPopinDisplay?: TablePopinDisplay | keyof typeof TablePopinDisplay
     ): this;
     /**
      * Sets a new value for property {@link #getPopinLayout popinLayout}.
@@ -20291,6 +22043,16 @@ declare module "sap/ui/mdc/table/ResponsiveTableType" {
      */
     popinLayout?:
       | (PopinLayout | keyof typeof PopinLayout)
+      | PropertyBindingInfo
+      | `{${string}}`;
+
+    /**
+     * Defines how the pop-in content is displayed.
+     *
+     * @since 1.143
+     */
+    popinDisplay?:
+      | (TablePopinDisplay | keyof typeof TablePopinDisplay)
       | PropertyBindingInfo
       | `{${string}}`;
   }
@@ -25918,6 +27680,8 @@ declare namespace sap {
 
     "sap/ui/mdc/enums/FilterBarValidationStatus": undefined;
 
+    "sap/ui/mdc/enums/GeomapControlPosition": undefined;
+
     "sap/ui/mdc/enums/LinkType": undefined;
 
     "sap/ui/mdc/enums/OperatorName": undefined;
@@ -25932,11 +27696,15 @@ declare namespace sap {
 
     "sap/ui/mdc/enums/RequestShowContainerReason": undefined;
 
+    "sap/ui/mdc/enums/TableActionPosition": undefined;
+
     "sap/ui/mdc/enums/TableGrowingMode": undefined;
 
     "sap/ui/mdc/enums/TableMultiSelectMode": undefined;
 
     "sap/ui/mdc/enums/TableP13nMode": undefined;
+
+    "sap/ui/mdc/enums/TablePopinDisplay": undefined;
 
     "sap/ui/mdc/enums/TableRowActionType": undefined;
 
@@ -26004,6 +27772,8 @@ declare namespace sap {
 
     "sap/ui/mdc/filterbar/FilterBarBase": undefined;
 
+    "sap/ui/mdc/filterbar/FilterContainer": undefined;
+
     "sap/ui/mdc/filterbar/IFilterContainer": undefined;
 
     "sap/ui/mdc/filterbar/p13n/AdaptationFilterBar": undefined;
@@ -26017,6 +27787,12 @@ declare namespace sap {
     "sap/ui/mdc/FilterBarDelegate": undefined;
 
     "sap/ui/mdc/FilterField": undefined;
+
+    "sap/ui/mdc/Geomap": undefined;
+
+    "sap/ui/mdc/geomap/Item": undefined;
+
+    "sap/ui/mdc/GeomapDelegate": undefined;
 
     "sap/ui/mdc/library": undefined;
 
@@ -26044,6 +27820,8 @@ declare namespace sap {
 
     "sap/ui/mdc/odata/v4/ChartDelegate": undefined;
 
+    "sap/ui/mdc/odata/v4/GeomapDelegate": undefined;
+
     "sap/ui/mdc/odata/v4/TableDelegate": undefined;
 
     "sap/ui/mdc/odata/v4/TypeMap": undefined;
@@ -26057,6 +27835,8 @@ declare namespace sap {
     "sap/ui/mdc/p13n/StateUtil": undefined;
 
     "sap/ui/mdc/Table": undefined;
+
+    "sap/ui/mdc/table/ActionLayoutData": undefined;
 
     "sap/ui/mdc/table/Column": undefined;
 

@@ -74,13 +74,13 @@ import * as url from "node:url";
         function reqListener(req: http.IncomingMessage, res: http.ServerResponse): void {}
 
         class MyIncomingMessage extends http.IncomingMessage {
-            foo: number;
+            foo!: number;
         }
 
         class MyServerResponse<Request extends http.IncomingMessage = http.IncomingMessage>
             extends http.ServerResponse<Request>
         {
-            foo: string;
+            foo!: string;
         }
 
         let server: https.Server;
@@ -123,13 +123,13 @@ import * as url from "node:url";
     let bar: "bar";
 
     class MyIncomingMessage extends http.IncomingMessage {
-        foo: typeof foo;
+        foo!: typeof foo;
     }
 
     class MyServerResponse<
         Request extends http.IncomingMessage = http.IncomingMessage,
     > extends http.ServerResponse<Request> {
-        bar: typeof bar;
+        bar!: typeof bar;
     }
 
     function reqListener(req: MyIncomingMessage, res: MyServerResponse): void {}
@@ -320,7 +320,7 @@ import * as url from "node:url";
     let _buffer: Buffer = Buffer.from("");
     let _err = new Error();
     let _boolean = true;
-    let sessionCallback = (err: Error, resp: Buffer) => {};
+    let sessionCallback = (err: Error | null, resp: Buffer) => {};
     let ocspRequestCallback = (err: Error | null, resp: Buffer) => {};
 
     server = server.addListener("keylog", (ln, tlsSocket) => {

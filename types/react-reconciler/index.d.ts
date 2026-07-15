@@ -380,7 +380,6 @@ declare namespace ReactReconciler {
             type: Type,
             oldProps: Props,
             newProps: Props,
-            internalInstanceHandle: OpaqueHandle,
             keepChildren: boolean,
             recyclableInstance: null | Instance,
         ): Instance;
@@ -611,7 +610,8 @@ declare namespace ReactReconciler {
     type LanePriority = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17;
 
     type Lanes = number;
-    type Lane = number;
+
+    type Lane = number & { __LaneBrand: any };
 
     type Flags = number;
 
@@ -926,6 +926,10 @@ declare namespace ReactReconciler {
 
     type IntersectionObserverOptions = any;
 
+    interface BaseErrorInfo {
+        componentStack?: string;
+    }
+
     interface Reconciler<Container, Instance, TextInstance, SuspenseInstance, FormInstance, PublicInstance> {
         createContainer(
             containerInfo: Container,
@@ -934,8 +938,10 @@ declare namespace ReactReconciler {
             isStrictMode: boolean,
             concurrentUpdatesByDefaultOverride: null | boolean,
             identifierPrefix: string,
-            onRecoverableError: (error: Error) => void,
-            transitionCallbacks: null | TransitionTracingCallbacks,
+            onUncaughtError: (error: Error, info: BaseErrorInfo & { errorBoundary?: Component }) => void,
+            onCaughtError: (error: Error, info: BaseErrorInfo) => void,
+            onRecoverableError: (error: Error, info: BaseErrorInfo) => void,
+            onDefaultTransitionIndicator: () => void,
         ): OpaqueRoot;
 
         createPortal(
@@ -944,8 +950,6 @@ declare namespace ReactReconciler {
             implementation: any,
             key?: string | null,
         ): ReactPortal;
-
-        registerMutableSourceForHydration(root: FiberRoot, mutableSource: MutableSource): void;
 
         createComponentSelector(component: React$AbstractComponent<never, unknown>): ComponentSelector;
 
@@ -981,11 +985,22 @@ declare namespace ReactReconciler {
             isStrictMode: boolean,
             concurrentUpdatesByDefaultOverride: null | boolean,
             identifierPrefix: string,
-            onRecoverableError: (error: Error) => void,
+            onUncaughtError: (error: Error, info: BaseErrorInfo & { errorBoundary?: Component }) => void,
+            onCaughtError: (error: Error, info: BaseErrorInfo) => void,
+            onRecoverableError: (error: Error, info: BaseErrorInfo) => void,
+            onDefaultTransitionIndicator: () => void,
             transitionCallbacks: null | TransitionTracingCallbacks,
+            formState: unknown,
         ): OpaqueRoot;
 
         updateContainer(
+            element: ReactNode,
+            container: OpaqueRoot,
+            parentComponent?: Component<any, any> | null,
+            callback?: (() => void) | null,
+        ): Lane;
+
+        updateContainerSync(
             element: ReactNode,
             container: OpaqueRoot,
             parentComponent?: Component<any, any> | null,
@@ -998,10 +1013,13 @@ declare namespace ReactReconciler {
 
         discreteUpdates<A, B, C, D, R>(fn: (arg0: A, arg1: B, arg2: C, arg3: D) => R, a: A, b: B, c: C, d: D): R;
 
-        flushControlled(fn: () => any): void;
-
         flushSync(): void;
         flushSync<R>(fn: () => R): R;
+
+        flushSyncFromReconciler(): void;
+        flushSyncFromReconciler<R>(fn: () => R): R;
+
+        flushSyncWork(): boolean;
 
         isAlreadyRendering(): boolean;
 
@@ -1011,15 +1029,9 @@ declare namespace ReactReconciler {
 
         attemptSynchronousHydration(fiber: Fiber): void;
 
-        attemptDiscreteHydration(fiber: Fiber): void;
-
         attemptContinuousHydration(fiber: Fiber): void;
 
         attemptHydrationAtCurrentPriority(fiber: Fiber): void;
-
-        getCurrentUpdatePriority(): LanePriority;
-
-        runWithPriority<T>(priority: LanePriority, fn: () => T): T;
 
         findHostInstance(component: any): PublicInstance | null;
 
@@ -1033,6 +1045,17 @@ declare namespace ReactReconciler {
 
         injectIntoDevTools(devToolsConfig: DevToolsConfig<Instance, TextInstance, any>): boolean;
     }
+
+    function defaultOnUncaughtError(error: Error): void;
+    function defaultOnCaughtError(error: Error): void;
+    function defaultOnRecoverableError(error: Error): void;
+
+    function startHostTransition(
+        formFiber: Fiber,
+        pendingState: unknown,
+        action: ((formData: FormData) => void) | null,
+        formData: FormData,
+    ): void;
 }
 
 export = ReactReconciler;

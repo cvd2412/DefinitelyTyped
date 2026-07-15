@@ -14,6 +14,7 @@ import {
     LdapSearchResponse,
     on,
     patch,
+    shared,
     sleep,
     SmtpEventHandler,
     SmtpEventMessage,
@@ -44,7 +45,21 @@ on("ldap", (req: LdapSearchRequest, res: LdapSearchResponse) => {});
 on("http", handler, "");
 on("http", handler, {});
 on("http", handler, { tags: { foo: "bar" } });
+on("http", handler, { track: true });
 on("http", async () => {});
+on("http", (request) => {
+    request.querystring;
+});
+on("http", (request, response) => {
+    const s = request.toString();
+    const url = request.url.toString();
+
+    response.headers = {
+        "Content-Type": "application/json",
+    };
+    response.headers["Access-Control-Allow-Origin"] = "*";
+    response.headers["foo"] = { bar: 123 };
+});
 
 // @ts-expect-error
 every(12, () => {});
@@ -129,7 +144,6 @@ h = (req: HttpRequest, res: HttpResponse) => {
     res.data = 12;
     res.data = "foo";
     res.data = {};
-    // @ts-expect-error
     res.headers.foo = 12;
     res.headers.foo = "bar";
     res.headers["Content-Type"] = "application/json";
@@ -307,3 +321,14 @@ patch({ x: 1 }, { y: 1 });
 patch({ x: 1 }, { x: Delete });
 patch([1, 2], [3, 4]);
 patch([1, 2], [undefined, Delete]);
+
+shared.set("foo", 123);
+shared.set("foo", {});
+shared.delete("foo");
+let s: string | undefined = shared.get("foo");
+let n: number | undefined = shared.get("foo");
+let b: boolean = shared.has("foo");
+let keys: string[] = shared.keys();
+shared.namespace("foo").set("bar", 123);
+shared.update("foo", (v) => v ?? "new value");
+shared.clear();
